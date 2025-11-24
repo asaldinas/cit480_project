@@ -8,7 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 
 // Use your resources/image/login-bg.png
 const bgUrl = new URL('../../../images/image.png', import.meta.url).href;
-const decoUrl = new URL('../../../image/arrow_img.png', import.meta.url).href;
+const decoUrl = new URL('../../../images/arrow_img.png', import.meta.url).href;
 
 export default function Login({ status, canResetPassword }) {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -27,16 +27,14 @@ export default function Login({ status, canResetPassword }) {
       <Head title="Log in" />
 
       {/* Stage: match Figma canvas size and absolute positions */}
-      <div className="fixed inset-0 flex items-center justify-center bg-white overflow-hidden">
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
         <div className="w-[1440px] h-[1024px] relative bg-white overflow-hidden">
-
-          {/* Background image (Figma: 1536x1024, left -48) */}
-          <img
-            className="w-[1536px] h-[1024px] left-[-48px] top-0 absolute object-cover"
-            src={bgUrl}
-            alt=""
-            aria-hidden="true"
-          />
+  <img
+    className="w-[1536px] h-[1024px] left-[-48px] top-0 absolute object-cover"
+    src={bgUrl}
+    alt=""
+    aria-hidden="true"
+  />
 
           {/* Decorative image (leave placeholder or swap your asset) */}
           <img
