@@ -19,7 +19,7 @@ import companyIcon from "../Assets/icons/company_icon.svg";
 import positionIcon from "../Assets/icons/position_icon.svg";
 import salaryIcon from "../Assets/icons/salary_icon.svg";
 
-// Search 
+// Search
 import searchIcon from "../Assets/icons/search_icon.svg";
 
 export default function Dashboard() {
@@ -150,7 +150,7 @@ export default function Dashboard() {
  {/* Search Bar */}
 <div className="border-b border-gray-200 p-6 bg-white">
   <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-100 rounded-lg w-full max-w-xl">
-    
+
     {/* Search icon */}
     <img
       src={searchIcon}
@@ -167,7 +167,6 @@ export default function Dashboard() {
     />
   </div>
 </div>
-
 
           {/* Columns */}
           <main className="flex gap-6 p-6">
