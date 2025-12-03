@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TodoController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ApplicationController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -16,15 +17,25 @@ Route::get('/', function () {
     ]);
 });
 
-use App\Http\Controllers\DashboardController;
+// Authenticated + Verified Routes
+Route::middleware(['auth', 'verified'])->group(function () {
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
-Route::resource('todos', TodoController::class);
-Route::patch('/todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
+    // Application CRUD
+    Route::post('/applications', [ApplicationController::class, 'store'])
+        ->name('applications.store');
 
+    Route::put('/applications/{application}', [ApplicationController::class, 'update'])
+        ->name('applications.update');
+
+    Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])
+        ->name('applications.destroy');
+});
+
+// Profile routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
