@@ -26,119 +26,135 @@ export default function Login({ status, canResetPassword }) {
     <GuestLayout>
       <Head title="Log in" />
 
-      {/* Stage: match Figma canvas size and absolute positions */}
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="w-[1440px] h-[1024px] relative bg-white overflow-hidden">
-  <img
-    className="w-[1536px] h-[1024px] left-[-48px] top-0 absolute object-cover"
-    src={bgUrl}
-    alt=""
-    aria-hidden="true"
-  />
+      {/* Fullscreen background + centered card */}
+      <div className="relative min-h-screen flex items-center justify-center bg-white font-sans overflow-hidden">
+        {/* Background image */}
+        <img
+          className="absolute inset-0 w-full h-full object-cover"
+          src={bgUrl}
+          alt=""
+          aria-hidden="true"
+        />
 
-          {/* Decorative image (leave placeholder or swap your asset) */}
-          <img
-          className="w-72 h-72 left-[1106.83px] top-[19.23px] absolute object-contain"
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-white/40" aria-hidden="true" />
+
+        {/* Decorative image in the corner */}
+        <img
+          className="hidden md:block absolute right-6 top-6 w-40 h-40 object-contain"
           src={decoUrl}
           alt="Decorative element"
           aria-hidden="true"
-/>
+        />
 
-          {/* Header (outside the form) */}
-          <div className="w-[1249.08px] h-24 left-[44px] top-[110.78px] absolute text-center justify-start text-emerald-400 text-7xl font-normal font-['Arimo']">
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-md px-6">
+          {/* Header */}
+          <h1 className="mb-6 text-center text-3xl md:text-4xl font-bold text-green-800">
             Welcome to Career-Track
-          </div>
+          </h1>
 
-          {/* Card background rectangle */}
-          <div className="w-[523px] h-[538px] left-[458px] top-[248px] absolute opacity-80 bg-gray-600/70 rounded-[40px]" />
-
-          {/* Form */}
-          <form onSubmit={submit}>
+          {/* Card */}
+          <div className="bg-gray-700/80 rounded-3xl px-8 py-10 shadow-xl backdrop-blur">
             {/* Title */}
-            <div className="left-[538px] top-[285px] absolute text-center justify-start text-white text-3xl font-normal font-['Be_Vietnam_Pro']">
+            <h2 className="text-2xl font-semibold text-white text-center mb-2">
               Sign in to Career-Track
-            </div>
+            </h2>
 
-            {/* New here? + Create an account */}
-            <div className="left-[538px] top-[324px] absolute text-center justify-start">
-              <span className="text-white text-2xl font-normal font-['Be_Vietnam_Pro'] [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
-                New here?
-              </span>
-              <span className="text-stone-900 text-2xl font-normal font-['Be_Vietnam_Pro'] [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
-                {' '}
-              </span>
+            {/* New here / register */}
+            <p className="text-center text-white mb-6">
+              <span>New here? </span>
               <Link
                 href={route('register')}
-                className="text-white text-2xl font-normal font-['Be_Vietnam_Pro'] underline [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]"
+                className="underline font-medium"
               >
                 Create an account.
               </Link>
-            </div>
+            </p>
 
-            {/* Status flash (if any) */}
+            {/* Status flash */}
             {status && (
-              <div className="left-[495px] top-[360px] absolute text-teal-200 text-base font-medium">
+              <div className="mb-4 text-sm text-teal-200 text-center">
                 {status}
               </div>
             )}
 
-            {/* Email label */}
-            <InputLabel
-              htmlFor="email"
-              value="Email"
-              className="w-16 h-5 left-[495px] top-[358px] absolute text-center justify-start text-sky-900 text-2xl font-normal font-['Be_Vietnam_Pro']"
-            />
+            <form onSubmit={submit} className="space-y-6">
+              {/* Email */}
+              <div>
+                <InputLabel
+                  htmlFor="email"
+                  value="Email"
+                  className="block mb-1 text-white"
+                />
+                <TextInput
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={data.email}
+                  autoComplete="username"
+                  isFocused
+                  onChange={(e) => setData('email', e.target.value)}
+                  className="w-full h-12 bg-white rounded-lg text-gray-900 border-none px-3"
+                />
+                <InputError
+                  message={errors.email}
+                  className="mt-1 text-sm text-red-200"
+                />
+              </div>
 
-            {/* Email input (uses the white rectangle sizing from Figma) */}
-            <TextInput
-              id="email"
-              type="email"
-              name="email"
-              value={data.email}
-              autoComplete="username"
-              isFocused
-              onChange={(e) => setData('email', e.target.value)}
-              className="w-96 h-14 left-[495px] top-[393px] absolute bg-white rounded-[10px] text-gray-900 p-3 border-none"
-            />
-            <InputError message={errors.email} className="left-[495px] top-[455px] absolute text-red-100" />
+              {/* Password */}
+              <div>
+                <InputLabel
+                  htmlFor="password"
+                  value="Password"
+                  className="block mb-1 text-white"
+                />
+                <TextInput
+                  id="password"
+                  type="password"
+                  name="password"
+                  value={data.password}
+                  autoComplete="current-password"
+                  onChange={(e) => setData('password', e.target.value)}
+                  className="w-full h-12 bg-white rounded-lg text-gray-900 border-none px-3"
+                />
+                <InputError
+                  message={errors.password}
+                  className="mt-1 text-sm text-red-200"
+                />
+              </div>
 
-            {/* Password label */}
-            <InputLabel
-              htmlFor="password"
-              value="Password"
-              className="w-40 h-7 left-[472px] top-[502px] absolute text-center justify-start text-sky-900 text-2xl font-normal font-['Be_Vietnam_Pro'] [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]"
-            />
+              {/* Remember + Forgot */}
+              <div className="flex items-center justify-between text-sm text-white">
+                <label className="flex items-center space-x-2">
+                  <Checkbox
+                    name="remember"
+                    checked={data.remember}
+                    onChange={(e) => setData('remember', e.target.checked)}
+                  />
+                  <span>Remember me</span>
+                </label>
 
-            {/* Password input */}
-            <TextInput
-              id="password"
-              type="password"
-              name="password"
-              value={data.password}
-              autoComplete="current-password"
-              onChange={(e) => setData('password', e.target.value)}
-              className="w-96 h-14 left-[495px] top-[532px] absolute bg-white rounded-[10px] text-gray-900 p-3 border-none"
-            />
-            <InputError message={errors.password} className="left-[495px] top-[594px] absolute text-red-100" />
+                {canResetPassword && (
+                  <Link
+                    href={route('password.request')}
+                    className="underline"
+                  >
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
 
-            {/* Forgot password */}
-            {canResetPassword && (
-              <Link
-                href={route('password.request')}
-                className="w-52 left-[752px] top-[600px] absolute text-center justify-start text-white text-xl font-normal font-['Be_Vietnam_Pro'] underline [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]"
+              {/* Submit */}
+              <PrimaryButton
+                disabled={processing}
+                className="w-full h-12 mt-2 bg-teal-700/80 hover:bg-teal-700 rounded-full text-lg text-white flex items-center justify-center"
               >
-                Forgot Password?
-              </Link>
-            )}
-
-            {/* Submit button (Figma group) */}
-            <PrimaryButton
-              disabled={processing}
-              className="w-64 h-16 left-[589px] top-[660px] absolute bg-teal-700/50 hover:bg-teal-700 rounded-[40px] text-white text-2xl font-normal font-['Arimo'] flex items-center justify-center"
-            >
-              Sign In
-            </PrimaryButton>
-          </form>
+                Sign In
+              </PrimaryButton>
+            </form>
+          </div>
         </div>
       </div>
     </GuestLayout>
