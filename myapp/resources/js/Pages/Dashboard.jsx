@@ -173,7 +173,7 @@ export default function Dashboard() {
 
             {/* To Do List */}
             <section className="flex-1 flex flex-col gap-4">
-              <h2 className="text-[20px] font-semibold text-slate-900"><Link to='/todos'>To Do List</Link></h2>
+              <h2 className="text-[20px] font-semibold text-slate-900">To Do List</h2>
 
               <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
                 {todoJobs.length === 0 ? (
