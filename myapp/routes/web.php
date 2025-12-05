@@ -23,6 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+    Route::get('/blade-page', function () {
+    return view('app');
+    });
 
     // Application CRUD
     Route::post('/applications', [ApplicationController::class, 'store'])
@@ -34,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])
         ->name('applications.destroy');
 });
+
 
 // Profile routes
 Route::middleware('auth')->group(function () {

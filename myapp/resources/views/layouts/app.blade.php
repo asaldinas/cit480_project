@@ -9,6 +9,20 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @section('content')
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Todo List</h3>
+        </div>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <a href="/dashboard" class="btn btn-secondary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+
+            <h4>Your Todo Items:</h4>
 </head>
 <body>
     <div class="container py-4">
