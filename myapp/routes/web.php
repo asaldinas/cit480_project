@@ -7,6 +7,8 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\AnalyticsController;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -38,6 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('applications.destroy');
 });
 
+//Analytics routes
+Route::get('/Analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
 // Profile routes
 Route::middleware('auth')->group(function () {

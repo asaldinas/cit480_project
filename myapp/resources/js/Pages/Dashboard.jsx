@@ -173,7 +173,10 @@ export default function Dashboard() {
               <span>Dashboard</span>
             </button>
 
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-[18px] text-slate-600 hover:bg-teal-50 hover:text-teal-700">
+            <button 
+            onClick={() => window.location.href = '/Analytics'}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-[18px] text-slate-600 hover:bg-teal-50 hover:text-teal-700"
+            >
               <img src={analyticsIcon} className="w-7 h-7" />
               <span>Analytics</span>
             </button>
