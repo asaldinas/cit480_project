@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import GoogleButton from 'react-google-button';
 
 // Use your resources/image/login-bg.png
 const bgUrl = new URL('../../../images/image.png', import.meta.url).href;
@@ -124,6 +125,20 @@ export default function Login({ status, canResetPassword }) {
                   className="mt-1 text-sm text-red-200"
                 />
               </div>
+              {/*Google login*/}
+                <p className="text-center text-white mb-6">
+                  <span>OR</span>
+                </p> 
+               <a
+                  href="/auth/google/redirect"
+                  className="block mb-6"
+                 >
+                  <GoogleButton
+                    type="button"
+                    onClick={() => {}}
+                 />
+              </a>
+
 
               {/* Remember + Forgot */}
               <div className="flex items-center justify-between text-sm text-white">

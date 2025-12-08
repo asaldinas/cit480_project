@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\Auth\ProviderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApplicationController;
 
@@ -16,6 +17,12 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/auth/{provider}/redirect', [ProviderController::class, 'redirect'])
+    ->name('provider.redirect');
+
+Route::get('/auth/{provider}/callback', [ProviderController::class, 'callback'])
+    ->name('provider.callback');
 
 // Authenticated + Verified Routes
 Route::middleware(['auth', 'verified'])->group(function () {
