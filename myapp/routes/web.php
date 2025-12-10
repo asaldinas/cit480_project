@@ -26,9 +26,22 @@ Route::resource('todos', TodoController::class);
 Route::patch('/todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
 
 Route::middleware('auth')->group(function () {
+
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // NEW: React Settings page
+    Route::get('/settings', function () {
+        return Inertia::render('Settings');
+    })->name('settings');
+
+    // NEW: React Sign Out placeholder page
+    Route::get('/sign-out', function () {
+        return Inertia::render('SignOut');
+    })->name('signout');
 });
+
 
 require __DIR__.'/auth.php';
