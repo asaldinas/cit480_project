@@ -51,16 +51,33 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // NEW: React Settings page
+    //Settings page
     Route::get('/settings', function () {
         return Inertia::render('Settings');
     })->name('settings');
 
-    // NEW: React Sign Out placeholder page
+    // placeholder pages
     Route::get('/sign-out', function () {
         return Inertia::render('SignOut');
     })->name('signout');
+
+     Route::get('/calendar', function () {
+        return Inertia::render('Calendar');
+    })->name('calendar');
+    
+    Route::get('/contacts', function () {
+        return Inertia::render('Contacts');
+    })->name('contacts');
+
+    Route::get('/documents', function () {
+        return Inertia::render('Documents');
+    })->name('documents');
+
+    Route::get('/privacy', function () {
+        return Inertia::render('Privacy');
+    })->name('privacy');
 });
+
 
 
 require __DIR__.'/auth.php';
