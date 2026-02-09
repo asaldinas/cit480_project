@@ -9,15 +9,18 @@ class Application extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'company',
-        'position',
-        'salary',
-        'status',
-        'location',
-        'notes',
-    ];
+   // App\Models\Application.php
+
+protected $fillable = [
+    'company',
+    'position',
+    'salary',
+    'status',
+    'location',
+    'source',
+    'notes',
+    'user_id',
+];
 
     public function user()
     {

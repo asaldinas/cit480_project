@@ -15,6 +15,7 @@ public function store(Request $request)
         'salary'   => 'nullable|string|max:255',
         'status'   => 'required|string|in:todo,submitted,response',
         'location' => 'nullable|string|max:255',
+        'source'   => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
         'notes'    => 'nullable|string',
     ]);
 
@@ -34,6 +35,7 @@ public function store(Request $request)
         'salary'   => 'nullable|string|max:255',
         'status'   => 'required|string|in:todo,submitted,response',
         'location' => 'nullable|string|max:255',
+        'source'   => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
         'notes'    => 'nullable|string',
     ]);
 

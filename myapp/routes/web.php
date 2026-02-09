@@ -41,7 +41,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 //Analytics routes
-Route::get('/Analytics', [AnalyticsController::class, 'index'])->name('analytics');
+// inside Route::middleware(['auth', 'verified'])->group(function () {
+Route::get('/analytics', [AnalyticsController::class, 'index'])
+    ->name('analytics');
+
 
 // Profile routes
 Route::middleware('auth')->group(function () {

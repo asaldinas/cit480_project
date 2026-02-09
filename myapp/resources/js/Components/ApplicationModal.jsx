@@ -17,6 +17,7 @@ function ApplicationModal({
         salary: application?.salary || "",
         status: application?.status || defaultStatus, // 'todo' | 'submitted' | 'response'
         location: application?.location || "",
+        source: application?.source || "",
         notes: application?.notes || "",
     });
 
@@ -29,6 +30,7 @@ function ApplicationModal({
                 salary: application.salary || "",
                 status: application.status || defaultStatus,
                 location: application.location || "",
+                source: application.source || "",
                 notes: application.notes || "",
             });
         } else {
@@ -38,6 +40,7 @@ function ApplicationModal({
                 salary: "",
                 status: defaultStatus,
                 location: "",
+                source: "",
                 notes: "",
             });
         }
@@ -183,6 +186,29 @@ function ApplicationModal({
                             )}
                         </div>
                     </div>
+                    {/* Source */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Application Source
+                     </label>
+
+                    <select
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#009689] focus:outline-none focus:ring-1 focus:ring-[#7de1cf]"
+                        value={data.source}
+                        onChange={(e) => setData("source", e.target.value)}
+                    >
+                            <option value="">Select a source</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Indeed">Indeed</option>
+                            <option value="Company site">Company site</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Other">Other</option>
+                    </select>
+
+                        {errors.source && (
+                        <p className="mt-1 text-xs text-red-500">{errors.source}</p>
+                        )}
+                </div>
 
                     {/* Status (read-only) */}
                     <div>

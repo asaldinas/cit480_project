@@ -45,9 +45,10 @@ export default function DashboardSidebar() {
 
         {/* Analytics */}
         <button
-          onClick={() => router.visit("/Analytics")} // match your /Analytics route
-          className={navButtonClasses(isActive("/Analytics"))}
-        >
+          type="button"
+          onClick={() => router.get("/analytics")}
+          className={navButtonClasses(isActive("/analytics"))}
+           >
           <img src={analyticsIcon} className="w-7 h-7" />
           <span>Analytics</span>
         </button>

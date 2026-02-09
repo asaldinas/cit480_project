@@ -1,21 +1,34 @@
 <?php
-// app/Http/Controllers/AnalyticsController.php
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ApplicationController;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\Application;
 
 class AnalyticsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+
+        $total = $user
+            ? Application::where('user_id', $user->id)->count()
+            : 0;
+
         return Inertia::render('Analytics', [
-            // any props
+            'kpis' => [
+                'totalApplications' => (int) $total,
+
+                // Safe defaults so the React page doesn't crash
+                'totalThisWeek' => 0,
+                'responseRate' => 0,
+                'responseRateDelta' => 0,
+                'avgResponseTimeDays' => 0,
+                'medianResponseTimeDays' => 0,
+                'interviewRate' => 0,
+                'interviewsSecured' => 0,
+            ],
         ]);
     }
 }
