@@ -13,7 +13,7 @@ import writingIcon from "../Assets/icons/writing_icon.svg";
 import appIcon from "../Assets/icons/app_icon.png";
 
 export default function DashboardSidebar() {
-  const { url } = usePage(); // e.g. "/dashboard", "/Analytics", "/calendar"
+  const { url } = usePage(); // get current URL"
 
   const isActive = (path) => url === path;
 
@@ -78,15 +78,6 @@ export default function DashboardSidebar() {
         >
           <img src={documentsIcon} className="w-7 h-7" />
           <span>Documents</span>
-        </button>
-
-        {/* Todos */}
-        <button
-          onClick={() => router.visit("/todos")}
-          className={navButtonClasses(isActive("/todos"))}
-        >
-          <img src={writingIcon} className="w-7 h-7" />
-          <span>Todos</span>
         </button>
 
         {/* Settings */}

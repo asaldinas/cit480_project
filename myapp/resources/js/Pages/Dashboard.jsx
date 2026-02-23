@@ -383,83 +383,83 @@ const quickMonths = Array.from({ length: 5 }, (_, i) => {
           {/* Columns */}
           <main className="flex gap-6 p-6">
             {/* To Do List */}
-            <section className="flex-1 flex flex-col gap-4">
-              <h2 className="text-[20px] font-semibold text-slate-900">
-                To Do List
-              </h2>
+           <section className="flex-1 flex flex-col gap-4">
+  <div className="flex items-center justify-between">
+    <h2 className="text-[20px] font-semibold text-slate-900">
+      To Do List
+    </h2>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
-                {todoJobs.length === 0 ? (
-                  <p className="text-sm text-slate-500">Nothing to display.</p>
-                ) : (
-                  todoJobs.map(renderJobCard)
-                )}
-              </div>
+    <button
+      type="button"
+      onClick={() => openNewJobModal("todo")}
+      className="px-3 py-1.5 text-sm rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
+    >
+      + Add
+    </button>
+  </div>
 
-              <div className="border-2 border-dashed border-[#96d7d0] bg-teal-50 rounded-xl p-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => openNewJobModal("todo")}
-                  className="px-3 py-2 rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
-                >
-                  + Add
-                </button>
-              </div>
-            </section>
+  <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
+    {todoJobs.length === 0 ? (
+      <p className="text-sm text-slate-500">Nothing to display.</p>
+    ) : (
+      todoJobs.map(renderJobCard)
+    )}
+  </div>
+</section>
 
             {/* Submitted Applications */}
             <section className="flex-1 flex flex-col gap-4">
-              <h2 className="text-[20px] font-semibold text-slate-900">
-                Submitted Applications
-              </h2>
+  <div className="flex items-center justify-between">
+    <h2 className="text-[20px] font-semibold text-slate-900">
+      Submitted Applications
+    </h2>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
-                {submittedJobs.length === 0 ? (
-                  <p className="text-sm text-slate-500">Nothing to display.</p>
-                ) : (
-                  submittedJobs.map(renderJobCard)
-                )}
-              </div>
+    <button
+      type="button"
+      onClick={() => openNewJobModal("submitted")}
+      className="px-3 py-1.5 text-sm rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
+    >
+      + Add
+    </button>
+  </div>
 
-              <div className="border-2 border-dashed border-[#96d7d0] bg-teal-50 rounded-xl p-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => openNewJobModal("submitted")}
-                  className="px-3 py-2 rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
-                >
-                  + Add
-                </button>
-              </div>
-            </section>
+  <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
+    {submittedJobs.length === 0 ? (
+      <p className="text-sm text-slate-500">Nothing to display.</p>
+    ) : (
+      submittedJobs.map(renderJobCard)
+    )}
+  </div>
+</section>
 
             {/* Responses */}
-            <section className="flex-1 flex flex-col gap-4">
-              <h2 className="text-[20px] font-semibold text-slate-900">
-                Responses
-              </h2>
+           <section className="flex-1 flex flex-col gap-4">
+  <div className="flex items-center justify-between">
+    <h2 className="text-[20px] font-semibold text-slate-900">
+      Responses
+    </h2>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
-                {responseJobs.length === 0 ? (
-                  <p className="text-sm text-slate-500">Nothing to display.</p>
-                ) : (
-                  responseJobs.map(renderJobCard)
-                )}
-              </div>
+    <button
+      type="button"
+      onClick={() => openNewJobModal("response")}
+      className="px-3 py-1.5 text-sm rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
+    >
+      + Add
+    </button>
+  </div>
 
-              <div className="border-2 border-dashed border-[#96d7d0] bg-teal-50 rounded-xl p-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => openNewJobModal("response")}
-                  className="px-3 py-2 rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
-                >
-                  + Add
-                </button>
-              </div>
-            </section>
-          </main>
+  <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
+    {responseJobs.length === 0 ? (
+      <p className="text-sm text-slate-500">Nothing to display.</p>
+    ) : (
+      responseJobs.map(renderJobCard)
+    )}
+  </div>
+</section>
+</main>
         </div>
       </div>
-
+      
       {/* Shared modal for ADD + EDIT */}
       <ApplicationModal
         isOpen={isModalOpen}

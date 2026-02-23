@@ -5,7 +5,7 @@ import { useForm } from "@inertiajs/react";
 function ApplicationModal({
     isOpen,
     onClose,
-    defaultStatus = "submitted",
+    defaultStatus = "Submitted",
     title,
     application = null, // 👈 if provided, we're editing
 }) {

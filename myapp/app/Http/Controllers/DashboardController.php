@@ -12,7 +12,7 @@ class DashboardController extends Controller
     {
         $search = $request->query('search');
 
-        // Base query: only this user's applications
+        // only this user's applications
         $query = Application::where('user_id', auth()->id());
 
         // Search filter
@@ -28,7 +28,7 @@ class DashboardController extends Controller
 
         $applications = $query->orderBy('created_at', 'desc')->get();
 
-        // Group into your 3 dashboard columns
+        // Group into 3 dashboard columns
         $todoJobs      = $applications->where('status', 'todo')->values();
         $submittedJobs = $applications->where('status', 'submitted')->values();
         $responseJobs  = $applications->where('status', 'response')->values();
