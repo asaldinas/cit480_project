@@ -46,13 +46,16 @@ export default function Analytics() {
     const kpis = props.kpis ?? {
         totalApplications: 0,
         totalThisWeek: 0,
-        responseRate: null,
+        responseRate: 0,
         responseRateDelta: null,
         avgResponseTimeDays: null,
         medianResponseTimeDays: null,
         interviewRate: null,
         interviewsSecured: null,
     };
+    const responseRate = Number(kpis.responseRate ?? 0);
+    const responseRateDelta = Number(kpis.responseRateDelta ?? 0);
+    const deltaPrefix = responseRateDelta > 0 ? "+" : "";
 
 
     const status = useMemo(
@@ -190,8 +193,8 @@ export default function Analytics() {
 
                             <StatCard
                                 title="Response Rate"
-                                value={`${kpis.responseRate.toFixed(1)}%`}
-                                subtext={`+${kpis.responseRateDelta.toFixed(
+                                value={`${responseRate.toFixed(1)}%`}
+                                subtext={`${deltaPrefix}${responseRateDelta.toFixed(
                                     1
                                 )}% vs last month`}
                                 icon={
