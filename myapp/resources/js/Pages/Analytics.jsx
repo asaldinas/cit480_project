@@ -58,32 +58,42 @@ export default function Analytics() {
     const deltaPrefix = responseRateDelta > 0 ? "+" : "";
 
 
-    const status = useMemo(
-        () => [
-            { label: "To Do List", value: 8, color: "#94a3b8" }, // slate-400
-            { label: "Submitted", value: 15, color: "#14b8a6" }, // teal-500
-            { label: "Responses", value: 6, color: "#3b82f6" }, // blue-500
-            { label: "Rejections", value: 4, color: "#ef4444" }, // red-500
-        ],
-        []
-    );
+    // inside Analytics() after kpis is defined
+const statusesFromBackend = props.kpis?.statuses ?? [];
 
-    const statusTotal = status.reduce((sum, s) => sum + s.value, 0);
+// Ensure we always have label/value/color and a stable fallback
+const status = useMemo(() => {
+    if (!Array.isArray(statusesFromBackend) || statusesFromBackend.length === 0) {
+        // fallback example (keeps old visual when no data)
+        return [
+            { label: "To Do List", value: 0, color: "#94a3b8" },
+            { label: "Submitted", value: 0, color: "#14b8a6" },
+            { label: "Responses", value: 0, color: "#3b82f6" },
+        ];
+    }
+    return statusesFromBackend.map((s) => ({
+        label: s.label ?? (s.key ? s.key : 'Unknown'),
+        value: Number(s.value ?? 0),
+        color: s.color ?? '#9ca3af',
+    }));
+}, [statusesFromBackend]);
 
-    // CSS donut via conic-gradient based on the status array
-    const donutStyle = useMemo(() => {
-        let start = 0;
-        const parts = status.map((s) => {
-            const pct = statusTotal === 0 ? 0 : (s.value / statusTotal) * 100;
-            const end = start + pct;
-            const seg = `${s.color} ${start}% ${end}%`;
-            start = end;
-            return seg;
-        });
-        return {
-            background: `conic-gradient(${parts.join(", ")})`,
-        };
-    }, [status, statusTotal]);
+const statusTotal = useMemo(() => status.reduce((sum, s) => sum + s.value, 0), [status]);
+
+// CSS donut via conic-gradient based on the status array
+const donutStyle = useMemo(() => {
+    let start = 0;
+    const parts = status.map((s) => {
+        const pct = statusTotal === 0 ? 0 : (s.value / statusTotal) * 100;
+        const end = start + pct;
+        const seg = `${s.color} ${start}% ${end}%`;
+        start = end;
+        return seg;
+    });
+    return {
+        background: `conic-gradient(${parts.join(', ')})`,
+    };
+}, [status, statusTotal]);
 
     const monthly = useMemo(
         () => [

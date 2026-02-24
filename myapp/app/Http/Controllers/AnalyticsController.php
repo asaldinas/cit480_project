@@ -13,6 +13,7 @@ class AnalyticsController extends Controller
     {
         $user = $request->user();
 
+        // If not authenticated, return safe defaults
         if (!$user) {
             return Inertia::render('Analytics', [
                 'kpis' => [
@@ -24,15 +25,25 @@ class AnalyticsController extends Controller
                     'medianResponseTimeDays' => 0,
                     'interviewRate' => 0,
                     'interviewsSecured' => 0,
+                    'statuses' => [],
                 ],
             ]);
         }
 
+        // Base query for this user's applications
         $baseQuery = Application::query()->where('user_id', $user->id);
 
-        $totalApplications = (int) $baseQuery->count();
+        // ---- Total applications ----
+        $totalApplications = (int) (clone $baseQuery)->count();
 
-        // IMPORTANT: adjust this if your DB uses a different status value
+        // ---- Weekly total ----
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $totalThisWeek = (int) (clone $baseQuery)
+            ->where('created_at', '>=', $startOfWeek)
+            ->count();
+
+        // ---- Response rate (overall) ----
+        // Adjust this if your DB uses a different value (e.g. 'responded', 'Response', etc.)
         $responseStatus = 'response';
 
         $totalResponses = (int) (clone $baseQuery)
@@ -43,13 +54,7 @@ class AnalyticsController extends Controller
             ? ($totalResponses / $totalApplications) * 100
             : 0;
 
-        // Weekly applications (optional KPI you already show)
-        $startOfWeek = Carbon::now()->startOfWeek(); // locale dependent; adjust if you want Monday always
-        $totalThisWeek = (int) (clone $baseQuery)
-            ->where('created_at', '>=', $startOfWeek)
-            ->count();
-
-        // Month-over-month delta for response rate
+        // ---- Response rate delta (this month vs last month) ----
         $startThisMonth = Carbon::now()->startOfMonth();
         $startLastMonth = (clone $startThisMonth)->subMonth();
         $endLastMonth = (clone $startThisMonth)->subSecond();
@@ -77,6 +82,51 @@ class AnalyticsController extends Controller
 
         $responseRateDelta = $thisMonthRate - $lastMonthRate;
 
+        // ---- Status distribution for donut chart ----
+        // Get counts grouped by status: ['submitted' => 15, 'response' => 6, ...]
+        $countsByStatus = (clone $baseQuery)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status')
+            ->toArray();
+
+        // Map DB status values -> labels + colors (EDIT THESE KEYS)
+        $statusMap = [
+            // 'db_status_value' => ['label' => 'UI label', 'color' => '#HEX']
+            'todo'      => ['label' => 'To Do List', 'color' => '#94a3b8'], // slate-400
+            'submitted' => ['label' => 'Submitted',  'color' => '#14b8a6'], // teal-500
+            'response'  => ['label' => 'Responses',  'color' => '#3b82f6'], // blue-500
+            'rejected'  => ['label' => 'Rejections', 'color' => '#ef4444'], // red-500
+        ];
+
+        $statuses = [];
+
+        // Add mapped statuses first (consistent ordering)
+        foreach ($statusMap as $key => $meta) {
+            $val = isset($countsByStatus[$key]) ? (int) $countsByStatus[$key] : 0;
+
+            $statuses[] = [
+                'key' => $key,
+                'label' => $meta['label'],
+                'value' => $val,
+                'color' => $meta['color'],
+            ];
+        }
+
+        // Append any statuses in DB that aren't in the map (so you don't “lose” data)
+        foreach ($countsByStatus as $key => $cnt) {
+            if (!array_key_exists($key, $statusMap)) {
+                $statuses[] = [
+                    'key' => $key,
+                    'label' => ucfirst((string) $key),
+                    'value' => (int) $cnt,
+                    'color' => '#9ca3af', // fallback gray
+                ];
+            }
+        }
+
+        // If you prefer totalApplications to be the DB count (not sum of mapped statuses),
+        // keep $totalApplications as computed above (recommended).
         return Inertia::render('Analytics', [
             'kpis' => [
                 'totalApplications' => $totalApplications,
@@ -84,11 +134,14 @@ class AnalyticsController extends Controller
                 'responseRate' => $responseRate,
                 'responseRateDelta' => $responseRateDelta,
 
-                // keep your placeholders for now
+                // placeholders (compute later if you add responded_at, interview status, etc.)
                 'avgResponseTimeDays' => 0,
                 'medianResponseTimeDays' => 0,
                 'interviewRate' => 0,
                 'interviewsSecured' => 0,
+
+                // donut chart data
+                'statuses' => $statuses,
             ],
         ]);
     }
