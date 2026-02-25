@@ -13,7 +13,7 @@ class AnalyticsController extends Controller
     {
         $user = $request->user();
 
-        // If not authenticated, return safe defaults
+        // Safe defaults if not authenticated
         if (!$user) {
             return Inertia::render('Analytics', [
                 'kpis' => [
@@ -27,25 +27,28 @@ class AnalyticsController extends Controller
                     'interviewsSecured' => 0,
                     'statuses' => [],
                 ],
+                'monthlyActivity' => [],
+                'applicationSources' => [],
             ]);
         }
 
         // Base query for this user's applications
         $baseQuery = Application::query()->where('user_id', $user->id);
 
+        // ---- Status values (EDIT THESE TO MATCH YOUR DB) ----
+        $responseStatus = 'response';
+        $interviewStatus = 'interview';
+
         // ---- Total applications ----
         $totalApplications = (int) (clone $baseQuery)->count();
 
-        // ---- Weekly total ----
+        // ---- Total this week ----
         $startOfWeek = Carbon::now()->startOfWeek();
         $totalThisWeek = (int) (clone $baseQuery)
             ->where('created_at', '>=', $startOfWeek)
             ->count();
 
         // ---- Response rate (overall) ----
-        // Adjust this if your DB uses a different value (e.g. 'responded', 'Response', etc.)
-        $responseStatus = 'response';
-
         $totalResponses = (int) (clone $baseQuery)
             ->where('status', $responseStatus)
             ->count();
@@ -82,8 +85,7 @@ class AnalyticsController extends Controller
 
         $responseRateDelta = $thisMonthRate - $lastMonthRate;
 
-        // ---- Status distribution for donut chart ----
-        // Get counts grouped by status: ['submitted' => 15, 'response' => 6, ...]
+        // ---- Donut chart: status distribution ----
         $countsByStatus = (clone $baseQuery)
             ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
@@ -92,7 +94,6 @@ class AnalyticsController extends Controller
 
         // Map DB status values -> labels + colors (EDIT THESE KEYS)
         $statusMap = [
-            // 'db_status_value' => ['label' => 'UI label', 'color' => '#HEX']
             'todo'      => ['label' => 'To Do List', 'color' => '#94a3b8'], // slate-400
             'submitted' => ['label' => 'Submitted',  'color' => '#14b8a6'], // teal-500
             'response'  => ['label' => 'Responses',  'color' => '#3b82f6'], // blue-500
@@ -101,7 +102,7 @@ class AnalyticsController extends Controller
 
         $statuses = [];
 
-        // Add mapped statuses first (consistent ordering)
+        // Add mapped statuses first (keeps ordering stable)
         foreach ($statusMap as $key => $meta) {
             $val = isset($countsByStatus[$key]) ? (int) $countsByStatus[$key] : 0;
 
@@ -113,7 +114,7 @@ class AnalyticsController extends Controller
             ];
         }
 
-        // Append any statuses in DB that aren't in the map (so you don't “lose” data)
+        // Append any unmapped statuses from DB (so you don’t hide data)
         foreach ($countsByStatus as $key => $cnt) {
             if (!array_key_exists($key, $statusMap)) {
                 $statuses[] = [
@@ -125,8 +126,72 @@ class AnalyticsController extends Controller
             }
         }
 
-        // If you prefer totalApplications to be the DB count (not sum of mapped statuses),
-        // keep $totalApplications as computed above (recommended).
+        // ---- Monthly activity graph (last 5 months) ----
+        $monthsToShow = 5;
+
+        $start = Carbon::now()->subMonths($monthsToShow - 1)->startOfMonth();
+        $end = Carbon::now()->endOfMonth();
+
+        $applicationsByMonth = (clone $baseQuery)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt")
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('ym')
+            ->pluck('cnt', 'ym')
+            ->toArray();
+
+        $interviewsByMonth = (clone $baseQuery)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt")
+            ->whereBetween('created_at', [$start, $end])
+            ->where('status', $interviewStatus)
+            ->groupBy('ym')
+            ->pluck('cnt', 'ym')
+            ->toArray();
+
+        $responsesByMonth = (clone $baseQuery)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt")
+            ->whereBetween('created_at', [$start, $end])
+            ->where('status', $responseStatus)
+            ->groupBy('ym')
+            ->pluck('cnt', 'ym')
+            ->toArray();
+
+        $monthlyActivity = [];
+        $cursor = $start->copy();
+
+        while ($cursor->lte($end)) {
+            $ym = $cursor->format('Y-m');
+
+            $monthlyActivity[] = [
+                'month' => $cursor->format('M'), // Jun, Jul, Aug...
+                'ym' => $ym,                     // 2026-02
+                'applications' => (int) ($applicationsByMonth[$ym] ?? 0),
+               // 'interviews' => (int) ($interviewsByMonth[$ym] ?? 0),
+                'responses' => (int) ($responsesByMonth[$ym] ?? 0),
+            ];
+
+            $cursor->addMonth();
+        }
+
+        // ---- Application sources (group by source) ----
+// Change 'source' to the actual column name (e.g. 'application_source')
+        $sourcesRaw = (clone $baseQuery)
+            ->selectRaw('source, COUNT(*) as cnt')
+            ->groupBy('source')
+            ->orderByDesc('cnt')
+            ->pluck('cnt', 'source')
+            ->toArray();
+
+// Normalize into an array for React: [{ label, value }]
+        $applicationSources = [];
+            foreach ($sourcesRaw as $source => $cnt) {
+            $label = $source && trim((string)$source) !== '' ? (string)$source : 'Other';
+            $applicationSources[] = [
+            'label' => $label,
+            'value' => (int)$cnt,
+                ];
+        }
+
+        // ---- Return to Inertia ----
         return Inertia::render('Analytics', [
             'kpis' => [
                 'totalApplications' => $totalApplications,
@@ -134,15 +199,16 @@ class AnalyticsController extends Controller
                 'responseRate' => $responseRate,
                 'responseRateDelta' => $responseRateDelta,
 
-                // placeholders (compute later if you add responded_at, interview status, etc.)
+                // placeholders 
                 'avgResponseTimeDays' => 0,
                 'medianResponseTimeDays' => 0,
                 'interviewRate' => 0,
                 'interviewsSecured' => 0,
 
-                // donut chart data
                 'statuses' => $statuses,
             ],
+            'monthlyActivity' => $monthlyActivity,
+            'applicationSources' => $applicationSources,
         ]);
     }
 }

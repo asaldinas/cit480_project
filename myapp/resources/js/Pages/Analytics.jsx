@@ -95,32 +95,37 @@ const donutStyle = useMemo(() => {
     };
 }, [status, statusTotal]);
 
-    const monthly = useMemo(
-        () => [
-            { month: "Jun", applications: 5, interviews: 1, responses: 2 },
-            { month: "Jul", applications: 8, interviews: 2, responses: 3 },
-            { month: "Aug", applications: 12, interviews: 3, responses: 5 },
-            { month: "Sep", applications: 10, interviews: 2, responses: 4 },
-            { month: "Oct", applications: 15, interviews: 4, responses: 6 },
-        ],
-        []
-    );
+ const monthly = useMemo(() => {
+  const data = props.monthlyActivity ?? [];
+  if (!Array.isArray(data)) return [];
 
-    const maxMonthly = Math.max(
-        ...monthly.map((m) => Math.max(m.applications, m.interviews, m.responses))
-    );
+  return data.map((m) => ({
+    ym: m.ym ?? m.month, // stable key if provided
+    month: m.month ?? "",
+    applications: Number(m.applications ?? 0),
+    interviews: Number(m.interviews ?? 0),
+    responses: Number(m.responses ?? 0),
+  }));
+}, [props.monthlyActivity]);
 
-    const sources = useMemo(
-        () => [
-            { label: "LinkedIn", value: 18 },
-            { label: "Indeed", value: 12 },
-            { label: "Company Site", value: 8 },
-            { label: "Referral", value: 5 },
-            { label: "Other", value: 3 },
-        ],
-        []
-    );
-    const maxSource = Math.max(...sources.map((s) => s.value));
+    const maxMonthly = useMemo(() => {
+  if (!monthly.length) return 0;
+  return Math.max(...monthly.map(m => Math.max(m.applications, m.interviews, m.responses)));
+}, [monthly]);
+
+    const sources = useMemo(() => {
+    const data = props.applicationSources ?? [];
+        if (!Array.isArray(data)) return [];
+
+        return data.map((s) => ({
+         label: s.label ?? "Other",
+         value: Number(s.value ?? 0),
+  }));
+}, [props.applicationSources]);
+    const maxSource = useMemo(() => {
+  if (!sources.length) return 0;
+  return Math.max(...sources.map((s) => s.value));
+}, [sources]);
 
     const responseBins = useMemo(
         () => [
@@ -358,54 +363,39 @@ const donutStyle = useMemo(() => {
                             >
                                 {/* Simple grouped bar chart (no chart library) */}
                                 <div className="h-64 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                    <div className="h-full flex items-end justify-between gap-3">
-                                        {monthly.map((m) => (
-                                            <div
-                                                key={m.month}
-                                                className="flex-1 flex flex-col items-center gap-2"
-                                            >
-                                                <div className="w-full flex items-end justify-center gap-1">
-                                                    <div
-                                                        className="w-3 rounded-md bg-teal-500"
-                                                        style={{
-                                                            height:
-                                                                (m.applications /
-                                                                    maxMonthly) *
-                                                                    180 +
-                                                                12,
-                                                        }}
-                                                        title={`Applications: ${m.applications}`}
-                                                    />
-                                                    <div
-                                                        className="w-3 rounded-md bg-violet-500"
-                                                        style={{
-                                                            height:
-                                                                (m.interviews /
-                                                                    maxMonthly) *
-                                                                    180 +
-                                                                12,
-                                                        }}
-                                                        title={`Interviews: ${m.interviews}`}
-                                                    />
-                                                    <div
-                                                        className="w-3 rounded-md bg-blue-500"
-                                                        style={{
-                                                            height:
-                                                                (m.responses /
-                                                                    maxMonthly) *
-                                                                    180 +
-                                                                12,
-                                                        }}
-                                                        title={`Responses: ${m.responses}`}
-                                                    />
-                                                </div>
-                                                <div className="text-xs text-slate-500">
-                                                    {m.month}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+  <div className="h-full flex items-end justify-between gap-3">
+    {monthly.map((m) => {
+      const scale = maxMonthly === 0 ? 0 : 180 / maxMonthly;
+
+      return (
+        <div
+          key={m.ym} // ✅ use stable key
+          className="flex-1 flex flex-col items-center gap-2"
+        >
+          <div className="w-full flex items-end justify-center gap-1">
+            <div
+              className="w-3 rounded-md bg-teal-500"
+              style={{ height: m.applications * scale + 12 }}
+              title={`Applications: ${m.applications}`}
+            />
+            <div
+              className="w-3 rounded-md bg-violet-500"
+              style={{ height: m.interviews * scale + 12 }}
+              title={`Interviews: ${m.interviews}`}
+            />
+            <div
+              className="w-3 rounded-md bg-blue-500"
+              style={{ height: m.responses * scale + 12 }}
+              title={`Responses: ${m.responses}`}
+            />
+          </div>
+
+          <div className="text-xs text-slate-500">{m.month}</div>
+        </div>
+      );
+    })}
+  </div>
+</div>
                             </Card>
                         </div>
 
