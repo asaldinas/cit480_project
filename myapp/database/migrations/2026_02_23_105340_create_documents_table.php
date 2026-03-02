@@ -24,7 +24,7 @@ return new class extends Migration
         $table->string('s3_path');         // documents/{user_id}/uuid.pdf
 
         // UI fields
-        $table->string('category');        // resume, cover_letter, portfolio, certificate
+        $table->string('category');        // resume, cover_letter,certificate, other
         $table->json('tags')->nullable();  // ["latest","tech"]
 
         // Technical metadata

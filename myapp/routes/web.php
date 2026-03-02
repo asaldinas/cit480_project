@@ -70,6 +70,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])
         ->name('documents.store');
 
+    Route::get('/documents/{document}/view', [DocumentController::class, 'view'])
+    ->name('documents.view')
+    ->middleware(['auth', 'verified']);
+
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])
+    ->name('documents.download')
+    ->middleware(['auth', 'verified']);
+
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])
+    ->name('documents.destroy')
+    ->middleware(['auth', 'verified']);
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])
         ->name('analytics');
