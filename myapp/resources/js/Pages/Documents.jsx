@@ -1,8 +1,30 @@
 // resources/js/Pages/Documents.jsx
-import React from "react";
+import React, { useRef } from "react";
+import { useForm } from "@inertiajs/react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
 
-export default function Documents() {
+export default function Documents({ documents = [] }) {
+    const fileInputRef = useRef(null);
+
+const { data, setData, post, processing, reset } = useForm({
+    file: null,
+    category: "resume",
+    tags: []
+});
+
+const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setData("file", file);
+
+    post(route("documents.store"), {
+        forceFormData: true,
+        onSuccess: () => {
+            reset();
+        }
+    });
+};
     return (
         <div className="min-h-screen flex bg-gray-50 font-sans">
             <DashboardSidebar />
@@ -21,9 +43,19 @@ export default function Documents() {
                             </p>
                         </div>
 
-                        <button className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700">
-                            Upload Document
-                        </button>
+                        <button
+    onClick={() => fileInputRef.current.click()}
+    className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700"
+>
+    {processing ? "Uploading..." : "Upload Document"}
+</button>
+
+<input
+    type="file"
+    ref={fileInputRef}
+    className="hidden"
+    onChange={handleFileChange}
+/>
                     </div>
                 </div>
 
