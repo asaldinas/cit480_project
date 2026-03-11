@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
      Route::get('/calendar', function () {
         return Inertia::render('Calendar');
     })->name('calendar');
-    
+
     Route::get('/contacts', function () {
         return Inertia::render('Contacts');
     })->name('contacts');
@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
     })->name('privacy');
 });
 
-
+//Anti-SQL Injection
+Route::get('/search', 'SearchController@search');
 
 require __DIR__.'/auth.php';
