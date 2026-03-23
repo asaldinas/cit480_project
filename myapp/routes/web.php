@@ -8,7 +8,12 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\SettingsController;
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [

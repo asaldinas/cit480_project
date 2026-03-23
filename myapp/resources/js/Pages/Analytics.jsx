@@ -187,7 +187,7 @@ const donutStyle = useMemo(() => {
                 <main className="flex-1 px-6 py-6">
                     <div className="space-y-6">
                         {/* KPI cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch auto-rows-fr">
                             <StatCard
                                 title="Total Applications"
                                 value={kpis.totalApplications}
@@ -226,46 +226,10 @@ const donutStyle = useMemo(() => {
                                 }
                             />
 
-                            <StatCard
-                                title="Avg. Response Time"
-                                value={`${kpis.avgResponseTimeDays.toFixed(1)} days`}
-                                subtext={`Median: ${kpis.medianResponseTimeDays} days`}
-                                icon={
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M12 8v5l3 2" />
-                                        <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
-                                }
-                            />
-
-                            <StatCard
-                                title="Interview Rate"
-                                value={`${kpis.interviewRate.toFixed(1)}%`}
-                                subtext={`${kpis.interviewsSecured} interviews secured`}
-                                icon={
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M12 3v18" />
-                                        <path d="M3 12h18" />
-                                        <path d="M7 7h10v10H7z" />
-                                    </svg>
-                                }
-                            />
                         </div>
 
                         {/* Middle charts */}
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <Card
                                 title="Application Status"
                                 subtitle="Current distribution of your applications"
@@ -400,7 +364,7 @@ const donutStyle = useMemo(() => {
                         </div>
 
                         {/* Bottom charts */}
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <Card
                                 title="Application Sources"
                                 subtitle="Where you're finding opportunities"
@@ -426,34 +390,6 @@ const donutStyle = useMemo(() => {
                                                                 : `${(s.value / maxSource) * 100}%`,
                                                     }}
                                                 />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
-
-                            <Card
-                                title="Response Time Distribution"
-                                subtitle="How long companies take to respond"
-                            >
-                                <div className="h-64 rounded-xl border border-slate-200 bg-slate-50 flex items-end justify-around px-6 pb-6">
-                                    {responseBins.map((b) => (
-                                        <div
-                                            key={b.label}
-                                            className="flex flex-col items-center gap-2"
-                                        >
-                                            <div
-                                                className="w-10 rounded-lg bg-teal-500"
-                                                style={{
-                                                    height:
-                                                        maxBin === 0
-                                                            ? 0
-                                                            : (b.value / maxBin) * 180 + 20,
-                                                }}
-                                                title={`${b.label}: ${b.value}`}
-                                            />
-                                            <div className="text-xs text-slate-500 text-center w-14 leading-tight">
-                                                {b.label}
                                             </div>
                                         </div>
                                     ))}
