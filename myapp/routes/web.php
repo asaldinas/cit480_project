@@ -8,6 +8,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ContactController;
 
 
 Route::get('/', function () {
@@ -94,7 +95,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', fn () => Inertia::render('Settings'))->name('settings');
     Route::get('/sign-out', fn () => Inertia::render('SignOut'))->name('signout');
     Route::get('/calendar', fn () => Inertia::render('Calendar'))->name('calendar');
-    Route::get('/contacts', fn () => Inertia::render('Contacts'))->name('contacts');
+   
+   // Contacts
+    Route::get('/contacts', [ContactController::class, 'index'])->name('contacts');
+Route::post('/contacts', [ContactController::class, 'store'])->name('contacts.store');
+Route::put('/contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
+Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
 });
 require __DIR__.'/auth.php';
