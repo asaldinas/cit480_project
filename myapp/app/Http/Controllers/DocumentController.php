@@ -90,7 +90,8 @@ if ($documentCount >= 15) {
             'required',
             'file',
             'max:5120',
-            'mimes:pdf,doc,docx,jpg,jpeg,png'
+            'mimes:pdf,doc,docx,jpg,jpeg,png',
+            'clamav'
         ],
         'category' => 'required|in:resume,cover_letter,certificate,other',
         'tags' => 'nullable|array'
