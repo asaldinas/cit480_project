@@ -8,11 +8,8 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AnalyticsController;
-<<<<<<< HEAD
 use App\Http\Controllers\SettingsController;
-=======
 use App\Http\Controllers\ContactController;
->>>>>>> 2b23d36b5124ae56df522e376070785f939993a0
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
