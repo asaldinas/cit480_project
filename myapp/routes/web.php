@@ -95,12 +95,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', fn () => Inertia::render('Settings'))->name('settings');
     Route::get('/sign-out', fn () => Inertia::render('SignOut'))->name('signout');
     Route::get('/calendar', fn () => Inertia::render('Calendar'))->name('calendar');
-   
+
    // Contacts
     Route::get('/contacts', [ContactController::class, 'index'])->name('contacts');
 Route::post('/contacts', [ContactController::class, 'store'])->name('contacts.store');
 Route::put('/contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
 Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
+    //Settings page
+    Route::get('/settings', function () {
+        return Inertia::render('Settings');
+    })->name('settings');
+
+    // placeholder pages
+    Route::get('/sign-out', function () {
+        return Inertia::render('SignOut');
+    })->name('signout');
+
+     Route::get('/calendar', function () {
+        return Inertia::render('Calendar');
+    })->name('calendar');
+
+    Route::get('/contacts', function () {
+        return Inertia::render('Contacts');
+    })->name('contacts');
+
+    Route::get('/documents', function () {
+        return Inertia::render('Documents');
+    })->name('documents');
+
+    Route::get('/privacy', function () {
+        return Inertia::render('Privacy');
+    })->name('privacy');
 });
+
+//Anti-SQL Injection
+Route::get('/search', 'SearchController@search');
+
 require __DIR__.'/auth.php';
