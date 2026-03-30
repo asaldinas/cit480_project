@@ -24,6 +24,9 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "bootstrap": "^5.2.3",
+        "react-bootstrap": "^2.7.0",
+        "react-icons": "^4.7.1",
         "@progress/kendo-data-query": "^1.7.3",
         "@progress/kendo-drawing": "^1.23.1",
         "@progress/kendo-licensing": "^1.9.1",

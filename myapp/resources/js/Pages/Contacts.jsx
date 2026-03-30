@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Head, router, usePage, useForm } from "@inertiajs/react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import App from './App.tsx'
 
 export default function Contacts() {
     const { contacts, search: initialSearch } = usePage().props;
