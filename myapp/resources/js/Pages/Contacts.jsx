@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Head, router, usePage, useForm } from "@inertiajs/react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import App from './App.tsx'
+import TopBar from "@/Components/TopBar";
+
 
 export default function Contacts() {
-    const { contacts = [], search: initialSearch } = usePage().props;
+const { auth, contacts = [], search: initialSearch } = usePage().props;
 
     const [search, setSearch] = useState(initialSearch || "");
     const [activeFilter, setActiveFilter] = useState("all");
@@ -70,19 +70,19 @@ export default function Contacts() {
         setShowModal(false);
     };
 
-    const handleSubmit = () => {
-        if (editingContact) {
-            router.put(route("contacts.update", editingContact.id), data, {
-                preserveScroll: true,
-                onSuccess: () => closeModal(),
-            });
-        } else {
-            router.post(route("contacts.store"), data, {
-                preserveScroll: true,
-                onSuccess: () => closeModal(),
-            });
-        }
-    };
+   const handleSubmit = () => {
+    if (editingContact) {
+        put(route("contacts.update", editingContact.id), {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+        });
+    } else {
+        post(route("contacts.store"), {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+        });
+    }
+};
 
     const handleDelete = (id) => {
         if (!confirm("Are you sure you want to delete this contact?")) return;
@@ -104,8 +104,9 @@ export default function Contacts() {
             <Head title="Contacts" />
             <div className="min-h-screen flex bg-gray-50 font-sans">
                 <DashboardSidebar />
-
                 <div className="flex-1 flex flex-col">
+                      <TopBar user={auth?.user} />
+                      
                     {/* Header */}
                     <div className="bg-white border-b px-6 py-6">
                         <div className="flex justify-between items-start">

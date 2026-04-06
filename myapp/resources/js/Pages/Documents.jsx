@@ -4,6 +4,7 @@ import { useForm } from "@inertiajs/react";
 import { usePage } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
+import TopBar from "@/Components/TopBar";
 
 export default function Documents() {
 
@@ -11,7 +12,7 @@ const [showModal, setShowModal] = React.useState(false);
 
 const fileInputRef = useRef(null);
 
-const { documents = [] } = usePage().props;
+const { auth, documents = [] } = usePage().props;
 const [activeFilter, setActiveFilter] = React.useState("all");
 
 const filteredDocuments =
@@ -72,6 +73,7 @@ const [showErrorModal, setShowErrorModal] = React.useState(false);
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
+                 <TopBar user={auth?.user} />
                 {/* Header */}
                 <div className="bg-white border-b px-6 py-6">
                     <div className="flex justify-between items-start">

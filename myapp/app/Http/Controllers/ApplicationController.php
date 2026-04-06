@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use Illuminate\Http\Request;
+use App\Models\Notification;
 
 class ApplicationController extends Controller
 {
@@ -22,6 +23,15 @@ public function store(Request $request)
     $data['user_id'] = $request->user()->id;
 
     Application::create($data);
+
+    Notification::create([
+    'user_id'        => auth()->id(),
+    'type'           => 'followup_reminder',
+    'title'          => 'Follow Up Reminder',
+    'message'        => "It's been a month since you applied to {$application->company}. Consider following up!",
+    'application_id' => $application->id,
+    'scheduled_at'   => now()->addMonth(),
+]);
 
     return redirect()->route('dashboard')->with('success', 'Job created.');
 }

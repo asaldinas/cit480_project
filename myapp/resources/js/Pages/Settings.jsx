@@ -4,6 +4,7 @@ import { useForm } from "@inertiajs/react";
 import { VscAccount } from "react-icons/vsc";
 import { FaRegBell } from "react-icons/fa";
 import { MdLockOutline } from "react-icons/md";
+import TopBar from "@/Components/TopBar";
 
 function TabButton({ active, children, onClick, icon }) {
     return (
@@ -233,8 +234,9 @@ export default function Settings({ auth }) {
         <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
             <DashboardSidebar />
 
-            <div className="flex-1 p-6">
-                <div className="max-w-5xl mx-auto">
+             <div className="flex-1 flex flex-col"> 
+                <TopBar user={auth?.user} />  
+                <div className="flex-1 p-6">  
                     <div className="flex items-start justify-between">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Settings</h1>

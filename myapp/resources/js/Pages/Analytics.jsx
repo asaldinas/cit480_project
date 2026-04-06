@@ -3,6 +3,7 @@ import React, {useMemo} from "react";
 import { Link } from "@inertiajs/react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
 import { usePage } from "@inertiajs/react";
+import TopBar from "@/Components/TopBar";
 
 function StatCard({ title, value, subtext, icon }) {
     return (
@@ -40,8 +41,10 @@ function Card({ title, subtitle, children, footer }) {
     );
 }
 
-export default function Analytics() {
-    const { props } = usePage();
+export default function Analytics() {   
+const pageProps = usePage().props;
+const auth = pageProps.auth;
+const props = pageProps;
 
     const kpis = props.kpis ?? {
         totalApplications: 0,
@@ -142,6 +145,8 @@ const donutStyle = useMemo(() => {
     return (
         <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
             <DashboardSidebar />
+            <div className="flex-1 flex flex-col">
+            <TopBar user={auth?.user} />
 
             <div className="flex-1 flex flex-col">
                 {/* Top header */}
@@ -399,6 +404,7 @@ const donutStyle = useMemo(() => {
                     </div>
                 </main>
             </div>
+        </div>
         </div>
     );
 }

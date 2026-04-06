@@ -10,86 +10,49 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
-});
-
+// Welcome / Landing Page (public)
 Route::get('/', function () {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
+        'canLogin'       => Route::has('login'),
+        'canRegister'    => Route::has('register'),
         'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'phpVersion'     => PHP_VERSION,
     ]);
 });
 
-// Authenticated + Verified Routes
+// All authenticated + verified routes in ONE group
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
-    Route::get('/blade-page', function () {
-    return view('app');
-    });
-
-    // Application CRUD
-    Route::post('/applications', [ApplicationController::class, 'store'])
-        ->name('applications.store');
-
-    Route::put('/applications/{application}', [ApplicationController::class, 'update'])
-        ->name('applications.update');
-
-    Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])
-        ->name('applications.destroy');
-});
-
-//Analytics routes
-// inside Route::middleware(['auth', 'verified'])->group(function () {
-Route::get('/analytics', [AnalyticsController::class, 'index'])
-    ->name('analytics');
-
-
-// Authenticated Routes
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Applications
-    Route::post('/applications', [ApplicationController::class, 'store'])
-        ->name('applications.store');
-
-    Route::put('/applications/{application}', [ApplicationController::class, 'update'])
-        ->name('applications.update');
-
-    Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])
-        ->name('applications.destroy');
+    Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
+    Route::put('/applications/{application}', [ApplicationController::class, 'update'])->name('applications.update');
+    Route::delete('/applications/{application}', [ApplicationController::class, 'destroy'])->name('applications.destroy');
 
     // Documents
-    Route::get('/documents', [DocumentController::class, 'index'])
-        ->name('documents.index');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/view', [DocumentController::class, 'view'])->name('documents.view');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
-    Route::post('/documents', [DocumentController::class, 'store'])
-        ->name('documents.store');
-
-    Route::get('/documents/{document}/view', [DocumentController::class, 'view'])
-    ->name('documents.view')
-    ->middleware(['auth', 'verified']);
-
-    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])
-    ->name('documents.download')
-    ->middleware(['auth', 'verified']);
-
-    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])
-    ->name('documents.destroy')
-    ->middleware(['auth', 'verified']);
     // Analytics
-    Route::get('/analytics', [AnalyticsController::class, 'index'])
-        ->name('analytics');
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+
+    // Contacts
+    Route::get('/contacts', [ContactController::class, 'index'])->name('contacts');
+    Route::post('/contacts', [ContactController::class, 'store'])->name('contacts.store');
+    Route::put('/contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -97,44 +60,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Settings
-    Route::get('/settings', fn () => Inertia::render('Settings'))->name('settings');
-    Route::get('/sign-out', fn () => Inertia::render('SignOut'))->name('signout');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+
+    // Static pages
     Route::get('/calendar', fn () => Inertia::render('Calendar'))->name('calendar');
-
-   // Contacts
-    Route::get('/contacts', [ContactController::class, 'index'])->name('contacts');
-Route::post('/contacts', [ContactController::class, 'store'])->name('contacts.store');
-Route::put('/contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
-Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
-    //Settings page
-    Route::get('/settings', function () {
-        return Inertia::render('Settings');
-    })->name('settings');
-
-    // placeholder pages
-    Route::get('/sign-out', function () {
-        return Inertia::render('SignOut');
-    })->name('signout');
-
-     Route::get('/calendar', function () {
-        return Inertia::render('Calendar');
-    })->name('calendar');
-
-    Route::get('/contacts', function () {
-        return Inertia::render('Contacts');
-    })->name('contacts');
-
-    Route::get('/documents', function () {
-        return Inertia::render('Documents');
-    })->name('documents');
-
-    Route::get('/privacy', function () {
-        return Inertia::render('Privacy');
-    })->name('privacy');
+    Route::get('/sign-out', fn () => Inertia::render('SignOut'))->name('signout');
 });
-
-//Anti-SQL Injection
-Route::get('/search', 'SearchController@search');
 
 require __DIR__.'/auth.php';
