@@ -11,8 +11,7 @@ const [showModal, setShowModal] = React.useState(false);
 
 const fileInputRef = useRef(null);
 
-const { documents } = usePage().props;
-
+const { documents = [] } = usePage().props;
 const [activeFilter, setActiveFilter] = React.useState("all");
 
 const filteredDocuments =

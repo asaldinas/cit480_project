@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './App.tsx'
 
 export default function Contacts() {
-    const { contacts, search: initialSearch } = usePage().props;
+    const { contacts = [], search: initialSearch } = usePage().props;
 
     const [search, setSearch] = useState(initialSearch || "");
     const [activeFilter, setActiveFilter] = useState("all");
