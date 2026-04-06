@@ -14,19 +14,28 @@ export default function Home() {
                 </p>
 
                 <div className="flex justify-center gap-4">
-                    <Link 
-                        href="/login" 
+                    <Link
+                        href="/login"
                         className="px-4 py-2 bg-[#009689] text-white rounded-lg hover:bg-[#00786f]"
                     >
                         Login
                     </Link>
 
-                    <Link 
-                        href="/register" 
+                    <Link
+                        href="/register"
                         className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
                     >
                         Register
                     </Link>
+                <h2 className="text-4xl font-bold mb-4 text-[#009689]">
+                    Features
+                </h2>
+            <div className="min-h-screen flex items-center justify-center bg-[#e2f4f5]">
+                <p className="text-gray-600 mb-6">
+                    <b><li>Contacts page:</li></b> No need to keep track of who's who, when our built-in contacts page can let you store names and contact information.
+                    <b><li>File storage:</li></b> Store important job-related documents with our website, so you can quickly and easily find them.
+                    <b><li>Calendar:</li></b> Know when interviews are coming with our built-in calendar.
+                </p>
                 </div>
             </div>
         </div>
