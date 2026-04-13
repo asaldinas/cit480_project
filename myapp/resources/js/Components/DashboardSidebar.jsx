@@ -24,7 +24,7 @@ export default function DashboardSidebar() {
       : "text-slate-600 hover:bg-teal-50 hover:text-teal-700");
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col sticky top-0 h-screen">
       {/* Logo */}
       <div className="px-6 py-6 border-b border-gray-200 flex flex-col items-center justify-center gap-2">
         <span className="text-3xl font-semibold text-[#009689] text-center">
