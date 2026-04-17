@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
+//use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\DocumentController;
@@ -14,13 +14,16 @@ use App\Http\Controllers\NotificationController;
 
 // Welcome / Landing Page (public)
 Route::get('/', function () {
+    return Inertia::render('Welcome');
+});
+/*Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin'       => Route::has('login'),
         'canRegister'    => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion'     => PHP_VERSION,
     ]);
-});
+});*/
 
 // All authenticated + verified routes in ONE group
 Route::middleware(['auth', 'verified'])->group(function () {
