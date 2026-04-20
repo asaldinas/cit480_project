@@ -11,13 +11,15 @@ class ApplicationController extends Controller
 public function store(Request $request)
 {
     $data = $request->validate([
-        'company'  => 'required|string|max:255',
-        'position' => 'required|string|max:255',
-        'salary'   => 'nullable|string|max:255',
-        'status'   => 'required|string|in:todo,submitted,response',
-        'location' => 'nullable|string|max:255',
-        'source'   => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
-        'notes'    => 'nullable|string',
+        'company'       => 'required|string|max:255',
+        'position'      => 'required|string|max:255',
+        'salary'        => 'nullable|string|max:255',
+        'status'        => 'required|string|in:todo,submitted,response',
+        'location'      => 'nullable|string|max:255',
+        'source'        => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
+        'notes'         => 'nullable|string',
+        'link'          => 'nullable|string|max:2048',
+        'response_type' => 'nullable|string|in:rejection,interview,accepted,no_response',
     ]);
 
     $data['user_id'] = $request->user()->id;
@@ -40,13 +42,15 @@ public function store(Request $request)
    public function update(Request $request, Application $application)
 {
     $data = $request->validate([
-        'company'  => 'required|string|max:255',
-        'position' => 'required|string|max:255',
-        'salary'   => 'nullable|string|max:255',
-        'status'   => 'required|string|in:todo,submitted,response',
-        'location' => 'nullable|string|max:255',
-        'source'   => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
-        'notes'    => 'nullable|string',
+        'company'       => 'required|string|max:255',
+        'position'      => 'required|string|max:255',
+        'salary'        => 'nullable|string|max:255',
+        'status'        => 'required|string|in:todo,submitted,response',
+        'location'      => 'nullable|string|max:255',
+        'source'        => 'nullable|string|in:LinkedIn,Indeed,Company site,Referral,Other',
+        'notes'         => 'nullable|string',
+        'link'          => 'nullable|string|max:2048',
+        'response_type' => 'nullable|string|in:rejection,interview,accepted,no_response',
     ]);
 
     $application->update($data);

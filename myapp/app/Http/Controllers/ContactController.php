@@ -38,7 +38,7 @@ class ContactController extends Controller
             'phone'    => 'nullable|string|max:50',
             'company'  => 'nullable|string|max:255',
             'position' => 'nullable|string|max:255',
-            'type'     => 'required|in:recruiter,hiring_manager',
+            'type'     => 'required|in:recruiter,hiring_manager,other',
             'notes'    => 'nullable|string',
         ]);
 
@@ -60,7 +60,7 @@ class ContactController extends Controller
             'phone'    => 'nullable|string|max:50',
             'company'  => 'nullable|string|max:255',
             'position' => 'nullable|string|max:255',
-            'type'     => 'required|in:recruiter,hiring_manager',
+            'type'     => 'required|in:recruiter,hiring_manager,other',
             'notes'    => 'nullable|string',
         ]);
 

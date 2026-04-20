@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('company')->nullable();
             $table->string('position')->nullable();
-            $table->enum('type', ['recruiter', 'hiring_manager']);
+            $table->enum('type', ['recruiter', 'hiring_manager', 'other']);
             $table->text('notes')->nullable();
 
             $table->timestamps();

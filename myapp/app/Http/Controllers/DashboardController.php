@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Application;
+use App\Models\Todo;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -26,6 +27,14 @@ class DashboardController extends Controller
             'todoJobs'      => (clone $query)->where('status', 'todo')->get(),
             'submittedJobs' => (clone $query)->where('status', 'submitted')->get(),
             'responseJobs'  => (clone $query)->where('status', 'response')->get(),
+            'todos'         => Todo::with('application:id,company,position,link')
+                ->where('user_id', $user->id)
+                ->latest()
+                ->get(),
+            'pickableApps'  => Application::where('user_id', $user->id)
+                ->where('status', 'submitted')
+                ->orderBy('company')
+                ->get(['id', 'company', 'position', 'salary', 'location', 'source', 'link']),
         ]);
     }
 }

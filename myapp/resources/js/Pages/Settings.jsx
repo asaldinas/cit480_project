@@ -236,17 +236,15 @@ export default function Settings({ auth }) {
 
              <div className="flex-1 flex flex-col"> 
                 <TopBar user={auth?.user} />  
-                <div className="flex-1 p-6">  
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h1 className="text-[32px] font-normal text-slate-900">Settings</h1>
-                            <p className="text-sm text-gray-500">
-                                Manage your account preferences and application settings
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 bg-white/70 border border-white rounded-lg p-2 flex gap-2">
+                <div className="flex-1 flex flex-col">
+                    <header className="bg-white border-b border-gray-200 px-6 py-6">
+                        <h1 className="text-[32px] font-normal text-slate-900">Settings</h1>
+                        <p className="text-sm text-gray-500">
+                            Manage your account preferences and application settings
+                        </p>
+                    </header>
+                    <div className="flex-1 p-6">
+                    <div className="bg-white/70 border border-white rounded-lg p-2 flex gap-2">
                         <TabButton
                             active={activeTab === "Profile"}
                             onClick={() => setActiveTab("Profile")}
@@ -515,6 +513,7 @@ export default function Settings({ auth }) {
                             </div>
                         )}
                     </div>
+                </div>
                 </div>
             </div>
         </div>

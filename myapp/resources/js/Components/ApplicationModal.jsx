@@ -15,10 +15,11 @@ function ApplicationModal({
         company: application?.company || "",
         position: application?.position || "",
         salary: application?.salary || "",
-        status: application?.status || defaultStatus, // 'todo' | 'submitted' | 'response'
+        status: application?.status || defaultStatus,
         location: application?.location || "",
         source: application?.source || "",
         notes: application?.notes || "",
+        link: application?.link || "",
     });
 
     // If the `application` prop changes (open modal for a different card), sync the form
@@ -32,6 +33,7 @@ function ApplicationModal({
                 location: application.location || "",
                 source: application.source || "",
                 notes: application.notes || "",
+                link: application.link || "",
             });
         } else {
             setData({
@@ -42,6 +44,7 @@ function ApplicationModal({
                 location: "",
                 source: "",
                 notes: "",
+                link: "",
             });
         }
     }, [application, defaultStatus, setData]);
@@ -208,6 +211,23 @@ function ApplicationModal({
                         {errors.source && (
                         <p className="mt-1 text-xs text-red-500">{errors.source}</p>
                         )}
+                </div>
+
+                    {/* Link */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Job Posting Link <span className="text-slate-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                        type="url"
+                        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-[#009689] focus:outline-none focus:ring-1 focus:ring-[#7de1cf]"
+                        value={data.link}
+                        onChange={(e) => setData("link", e.target.value)}
+                        placeholder="https://..."
+                    />
+                    {errors.link && (
+                        <p className="mt-1 text-xs text-red-500">{errors.link}</p>
+                    )}
                 </div>
 
                     {/* Status (read-only) */}
