@@ -182,7 +182,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
         <DashboardSidebar />
 
-        {/* Right side: TopBar + content */}
+        {/* Right side: TopBar */}
         <div className="flex-1 flex flex-col">
           <TopBar user={auth?.user} />
 

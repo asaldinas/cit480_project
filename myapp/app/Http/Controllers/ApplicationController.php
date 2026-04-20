@@ -22,7 +22,7 @@ public function store(Request $request)
 
     $data['user_id'] = $request->user()->id;
 
-    Application::create($data);
+    $application = Application::create($data);
 
     Notification::create([
     'user_id'        => auth()->id(),

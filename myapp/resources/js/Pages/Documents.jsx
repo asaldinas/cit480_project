@@ -78,7 +78,7 @@ const [showErrorModal, setShowErrorModal] = React.useState(false);
                 <div className="bg-white border-b px-6 py-6">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-3xl font-semibold text-gray-900">
+                            <h1 className="text-[32px] font-normal text-slate-900">
                                 Documents
                             </h1>
                             <p className="text-gray-600 mt-1">

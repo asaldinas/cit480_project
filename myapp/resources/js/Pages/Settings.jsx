@@ -239,7 +239,7 @@ export default function Settings({ auth }) {
                 <div className="flex-1 p-6">  
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+                            <h1 className="text-[32px] font-normal text-slate-900">Settings</h1>
                             <p className="text-sm text-gray-500">
                                 Manage your account preferences and application settings
                             </p>

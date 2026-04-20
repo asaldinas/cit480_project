@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import TopBar from "@/Components/TopBar";
 
 export default function Privacy() {
   return (
@@ -7,7 +8,7 @@ export default function Privacy() {
       <Head title="Privacy & Security" />
 
       <div className="max-w-3xl mx-auto space-y-6">
-        <h1 className="text-2xl font-semibold flex items-center gap-2">
+        <h1 className="text-[32px] font-normal text-slate-900 flex items-center gap-2">
           <span className="text-teal-500">🛡️</span>
           Privacy & Security
         </h1>

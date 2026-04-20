@@ -268,7 +268,7 @@ export default function Calendar() {
                       />
                     </svg>
                   </span>
-                  <h1 className="text-2xl font-semibold text-gray-900">
+                  <h1 className="text-[32px] font-normal text-slate-900">
                     Calendar
                   </h1>
                 </div>

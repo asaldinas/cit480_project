@@ -153,7 +153,7 @@ const donutStyle = useMemo(() => {
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center">
                     <div className="w-full px-6 flex items-center justify-between">
                         <div>
-                            <h1 className="text-lg font-semibold text-slate-900">
+                            <h1 className="text-[32px] font-normal text-slate-900">
                                 Analytics
                             </h1>
                             <p className="text-sm text-slate-500">
