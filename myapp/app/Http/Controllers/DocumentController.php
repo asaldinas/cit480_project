@@ -26,14 +26,17 @@ public function view(Document $document)
     /**
      * Display user's documents
      */
-    public function index()
+    public function index(Request $request)
     {
-        $documents = Document::where('user_id', auth()->id())
-            ->latest()
-            ->get();
+        $query = Document::where('user_id', auth()->id())->latest();
+
+        if ($search = $request->get('search')) {
+            $query->where('original_name', 'like', "%{$search}%");
+        }
 
         return Inertia::render('Documents', [
-            'documents' => $documents
+            'documents' => $query->get(),
+            'search'    => $request->get('search', ''),
         ]);
     }
     /**

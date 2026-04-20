@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import ApplicationModal from "@/Components/ApplicationModal";
+import ResponseModal from "@/Components/ResponseModal";
+import TodoModal from "@/Components/TodoModal";
 import DashboardSidebar from "@/Components/DashboardSidebar";
 import TopBar from "@/Components/TopBar";
 
@@ -27,6 +29,8 @@ export default function Dashboard() {
     todoJobs = [],
     submittedJobs = [],
     responseJobs = [],
+    pickableApps = [],
+    todos = [],
   } = usePage().props;
 
   // Search state
@@ -36,6 +40,45 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [modalStatus, setModalStatus] = useState("submitted");
+
+  // Response modal state
+  const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
+  const [selectedResponse, setSelectedResponse] = useState(null);
+  const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState(null);
+  const [showPastTodos, setShowPastTodos] = useState(false);
+
+  const openResponseModal = () => {
+    setSelectedResponse(null);
+    setIsResponseModalOpen(true);
+  };
+
+  const openEditResponseModal = (job) => {
+    setSelectedResponse(job);
+    setIsResponseModalOpen(true);
+  };
+
+  const closeResponseModal = () => {
+    setSelectedResponse(null);
+    setIsResponseModalOpen(false);
+  };
+
+  const openTodoModal = () => {
+    setSelectedTodo(null);
+    setShowPastTodos(false);
+    setIsTodoModalOpen(true);
+  };
+
+  const openEditTodoModal = (todo) => {
+    setSelectedTodo(todo);
+    setShowPastTodos(false);
+    setIsTodoModalOpen(true);
+  };
+
+  const closeTodoModal = () => {
+    setSelectedTodo(null);
+    setIsTodoModalOpen(false);
+  };
 
   // Month picker state
   const [selectedMonth, setSelectedMonth] = useState(initialMonth);
@@ -118,12 +161,143 @@ export default function Dashboard() {
     router.delete(`/applications/${id}`);
   };
 
+  const handleCompleteTodo = (id) => {
+    router.patch(`/todos/${id}/complete`, {}, { preserveScroll: true });
+  };
+
+  const handleDeleteTodo = (id) => {
+    if (!confirm("Are you sure you want to delete this todo?")) return;
+    router.delete(`/todos/${id}`, { preserveScroll: true });
+  };
+
+  const responseTypeBadge = {
+    interview:   "bg-blue-100 text-blue-700 border-blue-200",
+    accepted:    "bg-green-100 text-green-700 border-green-200",
+    rejection:   "bg-red-100 text-red-700 border-red-200",
+    no_response: "bg-slate-100 text-slate-600 border-slate-200",
+  };
+
+  const responseTypeLabel = {
+    interview:   "Interview",
+    accepted:    "Accepted",
+    rejection:   "Rejection",
+    no_response: "No Response",
+  };
+
+  const todoTypeLabel = {
+    follow_up: "Follow up",
+    apply: "Apply",
+    check_portal: "Check portal",
+    send_email: "Send email",
+    custom: "Custom",
+  };
+
+  const activeTodos = todos.filter((todo) => !todo.completed);
+  const pastTodos = todos.filter((todo) => todo.completed);
+  const visibleTodos = showPastTodos ? pastTodos : activeTodos;
+
+  const renderTodoItem = (todo) => (
+    <div
+      key={todo.id}
+      className={`rounded-xl border p-3 shadow-sm ${
+        todo.completed
+          ? "border-slate-200 bg-slate-50 text-slate-500"
+          : "border-slate-100 bg-white"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        {!todo.completed && (
+          <button
+            type="button"
+            onClick={() => handleCompleteTodo(todo.id)}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
+            aria-label={`Complete ${todo.title}`}
+            title="Mark complete"
+          >
+            ✓
+          </button>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium rounded-lg border border-teal-200 bg-teal-50 px-2 py-0.5 text-[#00786f]">
+              {todoTypeLabel[todo.type] ?? "Todo"}
+            </span>
+            {todo.completed && (
+              <span className="text-xs rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-slate-500">
+                Done
+              </span>
+            )}
+          </div>
+
+          <h3 className="mt-2 text-sm font-semibold text-slate-900">{todo.title}</h3>
+
+          {todo.application && (
+            <p className="mt-1 text-xs text-slate-500">
+              {todo.application.company} - {todo.application.position}
+            </p>
+          )}
+
+          {todo.input_type === "link" && todo.value && (
+            <a
+              href={todo.value}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 block truncate text-xs text-[#009689] underline"
+            >
+              Open link
+            </a>
+          )}
+
+          {todo.input_type === "text" && todo.value && (
+            <p className="mt-2 text-xs text-slate-600">{todo.value}</p>
+          )}
+
+          {todo.input_type === "action" && todo.value && (
+            <p className="mt-2 inline-flex rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-600">
+              {todo.value}
+            </p>
+          )}
+
+          {todo.description && (
+            <p className="mt-2 text-xs text-slate-500">{todo.description}</p>
+          )}
+
+          {!todo.completed && (
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => openEditTodoModal(todo)}
+                className="px-3 py-1 text-xs rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteTodo(todo.id)}
+                className="px-3 py-1 text-xs rounded-lg bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   // Job card renderer
   const renderJobCard = (job) => (
     <div
       key={job.id}
       className="rounded-xl border border-slate-100 bg-white p-3 flex flex-col gap-3 shadow-sm"
     >
+      {job.response_type && (
+        <span className={`self-start text-xs px-2 py-0.5 rounded-lg border font-medium ${responseTypeBadge[job.response_type]}`}>
+          {responseTypeLabel[job.response_type] ?? job.response_type}
+        </span>
+      )}
+
       <div className="flex items-center gap-3">
         <img src={companyIcon} className="w-5 h-5" />
         <div>
@@ -152,6 +326,13 @@ export default function Dashboard() {
         <p className="text-xs text-slate-500">Location {job.location}</p>
       )}
 
+      {job.link && (
+        <a href={job.link} target="_blank" rel="noopener noreferrer"
+          className="text-xs text-[#009689] underline truncate">
+          View posting
+        </a>
+      )}
+
       {job.notes && (
         <p className="text-xs text-slate-600 line-clamp-3">{job.notes}</p>
       )}
@@ -159,7 +340,7 @@ export default function Dashboard() {
       <div className="mt-2 flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => openEditModal(job)}
+          onClick={() => job.status === "response" ? openEditResponseModal(job) : openEditModal(job)}
           className="px-3 py-1 text-xs rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
         >
           Edit
@@ -182,7 +363,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
         <DashboardSidebar />
 
-        {/* Right side: TopBar + content */}
+        {/* Right side: TopBar */}
         <div className="flex-1 flex flex-col">
           <TopBar user={auth?.user} />
 
@@ -190,7 +371,7 @@ export default function Dashboard() {
           <div className="flex-1 flex flex-col bg-white">
 
             {/* Header */}
-            <header className="h-44 border-b border-gray-200 p-6 flex flex-col gap-6 bg-white">
+            <header className="border-b border-gray-200 px-6 py-6 flex flex-col gap-4 bg-white">
               <div className="flex items-center gap-6">
                 <div className="flex-1 flex flex-col gap-2">
                   <h1 className="text-[32px] font-normal text-slate-900">
@@ -290,17 +471,29 @@ export default function Dashboard() {
                   <h2 className="text-[20px] font-semibold text-slate-900">To Do List</h2>
                   <button
                     type="button"
-                    onClick={() => openNewJobModal("todo")}
+                    onClick={openTodoModal}
                     className="px-3 py-1.5 text-sm rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
                   >
                     + Add
                   </button>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
-                  {todoJobs.length === 0 ? (
-                    <p className="text-sm text-slate-500">Nothing to display.</p>
+                <div className="bg-[#e2f4f5] border border-[#b8e0e3] rounded-xl p-5 flex flex-col gap-4">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowPastTodos((current) => !current)}
+                      className="text-sm text-[#00786f] hover:underline"
+                    >
+                      {showPastTodos ? "Done" : "View all past items"}
+                    </button>
+                  </div>
+
+                  {visibleTodos.length === 0 ? (
+                    <p className="text-sm text-slate-500">
+                      {showPastTodos ? "No completed todos yet." : "Nothing needed right now."}
+                    </p>
                   ) : (
-                    todoJobs.map(renderJobCard)
+                    visibleTodos.map(renderTodoItem)
                   )}
                 </div>
               </section>
@@ -317,7 +510,7 @@ export default function Dashboard() {
                     + Add
                   </button>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
+                <div className="bg-[#e2f4f5] border border-[#b8e0e3] rounded-xl p-5 flex flex-col gap-4">
                   {submittedJobs.length === 0 ? (
                     <p className="text-sm text-slate-500">Nothing to display.</p>
                   ) : (
@@ -332,13 +525,13 @@ export default function Dashboard() {
                   <h2 className="text-[20px] font-semibold text-slate-900">Responses</h2>
                   <button
                     type="button"
-                    onClick={() => openNewJobModal("response")}
+                    onClick={openResponseModal}
                     className="px-3 py-1.5 text-sm rounded-lg border border-[#009689] text-[#009689] hover:bg-[#dff7f3]"
                   >
                     + Add
                   </button>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-4">
+                <div className="bg-[#e2f4f5] border border-[#b8e0e3] rounded-xl p-5 flex flex-col gap-4">
                   {responseJobs.length === 0 ? (
                     <p className="text-sm text-slate-500">Nothing to display.</p>
                   ) : (
@@ -359,6 +552,20 @@ export default function Dashboard() {
         defaultStatus={modalStatus}
         title={selectedApplication ? "Edit Application" : "Add Application"}
         application={selectedApplication}
+      />
+
+      <ResponseModal
+        isOpen={isResponseModalOpen}
+        onClose={closeResponseModal}
+        pickableApps={pickableApps}
+        application={selectedResponse}
+      />
+
+      <TodoModal
+        isOpen={isTodoModalOpen}
+        onClose={closeTodoModal}
+        pickableApps={pickableApps}
+        todo={selectedTodo}
       />
     </>
   );

@@ -41,6 +41,7 @@ const { auth, contacts = [], search: initialSearch } = usePage().props;
 
     const recruiterCount = contacts.filter((c) => c.type === "recruiter").length;
     const hiringManagerCount = contacts.filter((c) => c.type === "hiring_manager").length;
+    const otherCount = contacts.filter((c) => c.type === "other").length;
 
     // Open modal for new contact
     const openAddModal = () => {
@@ -91,44 +92,62 @@ const { auth, contacts = [], search: initialSearch } = usePage().props;
         });
     };
 
-    const typeBadge = (type) =>
-        type === "recruiter"
-            ? "bg-teal-100 text-teal-700 border border-teal-200"
-            : "bg-purple-100 text-purple-700 border border-purple-200";
+    const typeBadge = (type) => {
+        if (type === "recruiter") return "bg-teal-100 text-teal-700 border border-teal-200";
+        if (type === "hiring_manager") return "bg-purple-100 text-purple-700 border border-purple-200";
+        return "bg-slate-100 text-slate-700 border border-slate-200";
+    };
 
-    const typeLabel = (type) =>
-        type === "recruiter" ? "Recruiter" : "Hiring Manager";
+    const typeLabel = (type) => {
+        if (type === "recruiter") return "Recruiter";
+        if (type === "hiring_manager") return "Hiring Manager";
+        return "Other";
+    };
+
+    const formatPhone = (phone) => {
+        if (!phone) return "";
+
+        const digits = String(phone).replace(/\D/g, "");
+
+        if (digits.length === 10) {
+            return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        if (digits.length === 11 && digits.startsWith("1")) {
+            return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+        }
+
+        return phone;
+    };
 
     return (
         <>
             <Head title="Contacts" />
-            <div className="min-h-screen flex bg-gray-50 font-sans">
+            <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
                 <DashboardSidebar />
                 <div className="flex-1 flex flex-col">
                       <TopBar user={auth?.user} />
                       
                     {/* Header */}
-                    <div className="bg-white border-b px-6 py-6">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h1 className="text-3xl font-semibold text-gray-900">
-                                    Contacts
-                                </h1>
-                                <p className="text-gray-600 mt-1">
-                                    Manage your recruiters and hiring managers
-                                </p>
-                            </div>
-                            <button
-                                onClick={openAddModal}
-                                className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700"
-                            >
-                                + Add Contact
-                            </button>
+                    <header className="bg-white border-b border-gray-200 px-6 py-6 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-[32px] font-normal text-slate-900">
+                                Contacts
+                            </h1>
+                            <p className="text-gray-600 mt-1">
+                                Manage your recruiters, hiring managers, and other contacts
+                            </p>
                         </div>
-                    </div>
+                        <button
+                            onClick={openAddModal}
+                            className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700"
+                        >
+                            + Add Contact
+                        </button>
+                    </header>
 
                     {/* Search + Filters */}
-                    <div className="px-6 py-4 flex flex-col gap-4">
+                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-4">
                         {/* Search */}
                         <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-100 rounded-lg w-full max-w-2xl">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,56 +193,95 @@ const { auth, contacts = [], search: initialSearch } = usePage().props;
                             >
                                 Hiring Managers ({hiringManagerCount})
                             </button>
+                            <button
+                                onClick={() => setActiveFilter("other")}
+                                className={`px-3 py-1.5 rounded-lg text-sm border ${
+                                    activeFilter === "other"
+                                        ? "bg-teal-600 text-white border-teal-600"
+                                        : "bg-white text-gray-800 border-gray-200"
+                                }`}
+                            >
+                                Other ({otherCount})
+                            </button>
                         </div>
                     </div>
 
                     {/* Contact List */}
-                    <div className="px-6 pb-6">
-                        <div className="bg-white rounded-2xl border divide-y">
+                    <div className="px-6 py-6">
+                        <div className="rounded-2xl bg-[#e2f4f5] p-5">
                             {filteredContacts.length === 0 ? (
-                                <div className="px-6 py-12 text-center text-gray-500">
+                                <div className="rounded-xl bg-white px-6 py-12 text-center text-gray-500">
                                     No contacts found.
                                 </div>
                             ) : (
-                                filteredContacts.map((contact) => (
-                                    <div key={contact.id} className="px-4 py-4 flex justify-between items-start">
-                                        <div className="flex flex-col gap-1">
-                                            {/* Name + badge */}
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium text-gray-900">
-                                                    {contact.name}
-                                                </span>
-                                                <span className={`text-xs px-2 py-0.5 rounded-lg ${typeBadge(contact.type)}`}>
-                                                    {typeLabel(contact.type)}
-                                                </span>
+                                <div className="overflow-hidden rounded-xl bg-white">
+                                    {filteredContacts.map((contact) => (
+                                        <div
+                                            key={contact.id}
+                                            className="grid min-h-[82px] grid-cols-1 gap-3 border-b border-gray-100 px-4 py-3 last:border-b-0 xl:grid-cols-[minmax(0,1.25fr)_minmax(300px,1fr)_auto] xl:items-center xl:gap-5"
+                                        >
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h3 className="truncate text-base font-semibold text-gray-900">
+                                                        {contact.name}
+                                                    </h3>
+                                                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-lg ${typeBadge(contact.type)}`}>
+                                                        {typeLabel(contact.type)}
+                                                    </span>
+                                                </div>
+                                                {(contact.position || contact.company) && (
+                                                    <p className="mt-1 truncate text-sm text-gray-600">
+                                                        {contact.position}
+                                                        {contact.position && contact.company && " at "}
+                                                        {contact.company}
+                                                    </p>
+                                                )}
+                                                {contact.notes && (
+                                                    <p className="mt-1 truncate text-sm text-gray-500">
+                                                        {contact.notes}
+                                                    </p>
+                                                )}
                                             </div>
 
-                                            {/* Position + company */}
-                                            {(contact.position || contact.company) && (
-                                                <p className="text-sm text-gray-600">
-                                                    {contact.position}
-                                                    {contact.position && contact.company && " at "}
-                                                    {contact.company}
-                                                </p>
-                                            )}
+                                            <div className="grid gap-2 text-sm md:grid-cols-2">
+                                                <div className="min-w-0">
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-gray-400">
+                                                            Email
+                                                        </span>
+                                                        {contact.email ? (
+                                                            <a
+                                                                href={`mailto:${contact.email}`}
+                                                                className="block min-w-0 truncate text-gray-700 hover:text-teal-700"
+                                                            >
+                                                                {contact.email}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-gray-400">Not added</span>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                                            {/* Notes */}
-                                            {contact.notes && (
-                                                <p className="text-sm text-gray-500">{contact.notes}</p>
-                                            )}
-                                        </div>
+                                                <div className="min-w-0">
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-gray-400">
+                                                            Phone
+                                                        </span>
+                                                        {contact.phone ? (
+                                                            <a
+                                                                href={`tel:${String(contact.phone).replace(/\D/g, "")}`}
+                                                                className="block min-w-0 truncate text-gray-700 hover:text-teal-700"
+                                                            >
+                                                                {formatPhone(contact.phone)}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-gray-400">Not added</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                        <div className="flex flex-col items-end gap-1 min-w-fit ml-6">
-                                            {/* Email + phone */}
-                                            {contact.email && (
-                                                <p className="text-sm text-gray-600">{contact.email}</p>
-                                            )}
-                                            {contact.phone && (
-                                                <p className="text-sm text-gray-600">{contact.phone}</p>
-                                            )}
-
-                                            {/* Actions */}
-                                            <div className="flex gap-2 mt-2">
+                                            <div className="flex justify-end gap-2 xl:justify-end">
                                                 <button
                                                     onClick={() => openEditModal(contact)}
                                                     className="px-3 py-1.5 border border-teal-200 text-teal-700 rounded-lg text-sm hover:bg-teal-50"
@@ -238,8 +296,8 @@ const { auth, contacts = [], search: initialSearch } = usePage().props;
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -275,6 +333,7 @@ const { auth, contacts = [], search: initialSearch } = usePage().props;
                                 >
                                     <option value="recruiter">Recruiter</option>
                                     <option value="hiring_manager">Hiring Manager</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
 

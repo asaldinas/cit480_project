@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Todo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
 {
@@ -31,12 +32,26 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'application_id' => [
+                'nullable',
+                Rule::exists('applications', 'id')->where(fn ($query) => $query
+                    ->where('user_id', $request->user()->id)
+                    ->where('status', 'submitted')),
+            ],
+            'type' => 'nullable|string|in:follow_up,apply,send_email,custom',
+            'input_type' => 'sometimes|string|in:text,link,action',
+            'value' => 'nullable|string|max:2048',
         ]);
+
+        $validated['user_id'] = $request->user()->id;
+        $validated['input_type'] = $validated['input_type'] ?? 'action';
+        $validated['value'] = $validated['value'] ?? null;
+        $validated['completed'] = false;
 
         Todo::create($validated);
 
-        return redirect()->route('todos.index')->with('success', 'Todo created successfully!');
+        return redirect()->route('dashboard')->with('success', 'Todo created successfully!');
     }
 
     /**
@@ -60,24 +75,35 @@ class TodoController extends Controller
      */
     public function update(Request $request, Todo $todo)
     {
+        abort_unless($todo->user_id === $request->user()->id, 403);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'completed' => 'sometimes|boolean'
+            'application_id' => [
+                'nullable',
+                Rule::exists('applications', 'id')->where(fn ($query) => $query
+                    ->where('user_id', $request->user()->id)
+                    ->where('status', 'submitted')),
+            ],
+            'type' => 'nullable|string|in:follow_up,apply,send_email,custom',
         ]);
 
         $todo->update($validated);
 
-        return redirect()->route('todos.index')->with('success', 'Todo updated successfully!');
+        return redirect()->route('dashboard')->with('success', 'Todo updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Todo $todo)
+    public function destroy(Request $request, Todo $todo)
     {
+        abort_unless($todo->user_id === $request->user()->id, 403);
+
         $todo->delete();
-        return redirect()->route('todos.index')->with('success', 'Todo deleted successfully!');
+
+        return redirect()->route('dashboard')->with('success', 'Todo deleted successfully!');
     }
 
     /**
@@ -85,12 +111,15 @@ class TodoController extends Controller
      */
     public function updateStatus(Request $request, Todo $todo)
     {
+        abort_unless($todo->user_id === $request->user()->id, 403);
+
         $request->validate([
             'completed' => 'required|boolean'
         ]);
 
         $todo->update([
-            'completed' => $request->completed
+            'completed' => $request->completed,
+            'completed_at' => $request->boolean('completed') ? now() : null,
         ]);
 
         return response()->json(['success' => 'Todo status updated successfully.']);
@@ -101,13 +130,30 @@ class TodoController extends Controller
      */
     public function toggle(Todo $todo)
     {
+        abort_unless($todo->user_id === auth()->id(), 403);
+
+        $completed = !$todo->completed;
+
         $todo->update([
-            'completed' => !$todo->completed
+            'completed' => $completed,
+            'completed_at' => $completed ? now() : null,
         ]);
 
         return response()->json([
             'success' => true,
             'completed' => $todo->completed
         ]);
+    }
+
+    public function complete(Request $request, Todo $todo)
+    {
+        abort_unless($todo->user_id === $request->user()->id, 403);
+
+        $todo->update([
+            'completed' => true,
+            'completed_at' => now(),
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Todo completed.');
     }
 }

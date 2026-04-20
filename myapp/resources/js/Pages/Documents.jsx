@@ -12,7 +12,18 @@ const [showModal, setShowModal] = React.useState(false);
 
 const fileInputRef = useRef(null);
 
-const { auth, documents = [] } = usePage().props;
+const { auth, documents = [], search: initialSearch = "" } = usePage().props;
+const [search, setSearch] = React.useState(initialSearch);
+
+const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    router.get("/documents", { search: value }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+};
 const [activeFilter, setActiveFilter] = React.useState("all");
 
 const filteredDocuments =
@@ -68,48 +79,52 @@ const [showErrorModal, setShowErrorModal] = React.useState(false);
 
 
     return (
-        <div className="min-h-screen flex bg-gray-50 font-sans">
+        <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
             <DashboardSidebar />
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
                  <TopBar user={auth?.user} />
                 {/* Header */}
-                <div className="bg-white border-b px-6 py-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-semibold text-gray-900">
-                                Documents
-                            </h1>
-                            <p className="text-gray-600 mt-1">
-                                Manage your resumes, cover letters, and other job application documents
-                            </p>
-                        </div>
-
-                        <button
-   onClick={() => setShowModal(true)}
-    className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700"
->
-    {processing ? "Uploading..." : "Upload Document"}
-</button>
-
-<input
-    type="file"
-    ref={fileInputRef}
-    className="hidden"
-    onChange={handleFileChange}
-/>
+                <header className="bg-white border-b border-gray-200 px-6 py-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-[32px] font-normal text-slate-900">
+                            Documents
+                        </h1>
+                        <p className="text-gray-600 mt-1">
+                            Manage your resumes, cover letters, and other job application documents
+                        </p>
                     </div>
-                </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700"
+                        >
+                            {processing ? "Uploading..." : "Upload Document"}
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            onChange={handleFileChange}
+                        />
+                    </div>
+                </header>
 
                 {/* Controls */}
-                <div className="px-6 py-6 space-y-4">
+                <div className="bg-white border-b border-gray-200 px-6 py-4 space-y-4">
                     {/* Search */}
-                    <input
-                        type="text"
-                        placeholder="Search documents by name or tags..."
-                        className="w-full max-w-2xl bg-gray-100 border border-transparent rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-100 rounded-lg w-full max-w-2xl">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                        </svg>
+                        <input
+                            className="w-full bg-transparent border-none outline-none text-sm placeholder:text-gray-500"
+                            placeholder="Search documents by name..."
+                            value={search}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
 
                     {/* Filters */}
                     <div className="flex gap-2 flex-wrap">
@@ -144,6 +159,7 @@ const [showErrorModal, setShowErrorModal] = React.useState(false);
                 </div>
 
                 {/* Document List */}
+                <div className="px-6 py-6">
 <div className="bg-white rounded-2xl border divide-y">
     {filteredDocuments.length === 0 ?  (
         <div className="px-6 py-12 text-center text-gray-500">
@@ -229,6 +245,7 @@ const [showErrorModal, setShowErrorModal] = React.useState(false);
         ))
     )}
 </div>
+                </div>
 
                                     </div>
     {showModal && (

@@ -1,25 +1,14 @@
-// resources/js/Pages/Analytics.jsx
-import React, {useMemo} from "react";
-import { Link } from "@inertiajs/react";
+import React, { useMemo } from "react";
 import DashboardSidebar from "@/Components/DashboardSidebar";
 import { usePage } from "@inertiajs/react";
 import TopBar from "@/Components/TopBar";
 
-function StatCard({ title, value, subtext, icon }) {
+function StatCard({ title, value, subtext }) {
     return (
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-                <p className="text-sm text-slate-500">{title}</p>
-                <span className="h-9 w-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center">
-                    {icon}
-                </span>
-            </div>
-            <div className="mt-4">
-                <div className="text-3xl font-semibold text-slate-900">{value}</div>
-                {subtext ? (
-                    <div className="mt-1 text-sm text-teal-700">{subtext}</div>
-                ) : null}
-            </div>
+            <p className="text-sm text-slate-500">{title}</p>
+            <div className="mt-3 text-3xl font-semibold text-slate-900">{value}</div>
+            {subtext ? <div className="mt-1 text-sm text-teal-700">{subtext}</div> : null}
         </div>
     );
 }
@@ -29,382 +18,235 @@ function Card({ title, subtitle, children, footer }) {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div>
                 <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-                {subtitle ? (
-                    <p className="text-sm text-slate-500">{subtitle}</p>
-                ) : null}
+                {subtitle ? <p className="text-sm text-slate-500">{subtitle}</p> : null}
             </div>
-
             <div className="mt-6">{children}</div>
-
             {footer ? <div className="mt-4">{footer}</div> : null}
         </div>
     );
 }
 
-export default function Analytics() {   
-const pageProps = usePage().props;
-const auth = pageProps.auth;
-const props = pageProps;
+export default function Analytics() {
+    const { auth, kpis: rawKpis, responseTypes: rawResponseTypes, monthlyActivity: rawMonthly, applicationSources: rawSources } = usePage().props;
 
-    const kpis = props.kpis ?? {
-        totalApplications: 0,
-        totalThisWeek: 0,
-        responseRate: 0,
-        responseRateDelta: null,
-        avgResponseTimeDays: null,
-        medianResponseTimeDays: null,
-        interviewRate: null,
-        interviewsSecured: null,
-    };
+    const kpis = rawKpis ?? {};
     const responseRate = Number(kpis.responseRate ?? 0);
     const responseRateDelta = Number(kpis.responseRateDelta ?? 0);
     const deltaPrefix = responseRateDelta > 0 ? "+" : "";
 
+    // Status donut
+    const statusesFromBackend = kpis.statuses ?? [];
+    const status = useMemo(() => {
+        if (!Array.isArray(statusesFromBackend) || statusesFromBackend.length === 0) {
+            return [
+                { label: "Submitted", value: 0, color: "#14b8a6" },
+                { label: "Responses", value: 0, color: "#3b82f6" },
+            ];
+        }
+        return statusesFromBackend.map((s) => ({ label: s.label ?? s.key, value: Number(s.value ?? 0), color: s.color ?? "#9ca3af" }));
+    }, [statusesFromBackend]);
 
-    // inside Analytics() after kpis is defined
-const statusesFromBackend = props.kpis?.statuses ?? [];
+    const statusTotal = useMemo(() => status.reduce((sum, s) => sum + s.value, 0), [status]);
 
-// Ensure we always have label/value/color and a stable fallback
-const status = useMemo(() => {
-    if (!Array.isArray(statusesFromBackend) || statusesFromBackend.length === 0) {
-        // fallback example (keeps old visual when no data)
-        return [
-            { label: "To Do List", value: 0, color: "#94a3b8" },
-            { label: "Submitted", value: 0, color: "#14b8a6" },
-            { label: "Responses", value: 0, color: "#3b82f6" },
-        ];
-    }
-    return statusesFromBackend.map((s) => ({
-        label: s.label ?? (s.key ? s.key : 'Unknown'),
-        value: Number(s.value ?? 0),
-        color: s.color ?? '#9ca3af',
-    }));
-}, [statusesFromBackend]);
+    const donutStyle = useMemo(() => {
+        let start = 0;
+        const parts = status.map((s) => {
+            const pct = statusTotal === 0 ? 0 : (s.value / statusTotal) * 100;
+            const end = start + pct;
+            const seg = `${s.color} ${start}% ${end}%`;
+            start = end;
+            return seg;
+        });
+        return { background: `conic-gradient(${parts.join(", ")})` };
+    }, [status, statusTotal]);
 
-const statusTotal = useMemo(() => status.reduce((sum, s) => sum + s.value, 0), [status]);
+    // Response type breakdown
+    const responseTypes = useMemo(() => {
+        const data = rawResponseTypes ?? [];
+        return data.map((r) => ({ label: r.label, value: Number(r.value ?? 0), color: r.color ?? "#9ca3af" }));
+    }, [rawResponseTypes]);
+    const maxResponseType = useMemo(() => Math.max(1, ...responseTypes.map((r) => r.value)), [responseTypes]);
 
-// CSS donut via conic-gradient based on the status array
-const donutStyle = useMemo(() => {
-    let start = 0;
-    const parts = status.map((s) => {
-        const pct = statusTotal === 0 ? 0 : (s.value / statusTotal) * 100;
-        const end = start + pct;
-        const seg = `${s.color} ${start}% ${end}%`;
-        start = end;
-        return seg;
-    });
-    return {
-        background: `conic-gradient(${parts.join(', ')})`,
-    };
-}, [status, statusTotal]);
-
- const monthly = useMemo(() => {
-  const data = props.monthlyActivity ?? [];
-  if (!Array.isArray(data)) return [];
-
-  return data.map((m) => ({
-    ym: m.ym ?? m.month, // stable key if provided
-    month: m.month ?? "",
-    applications: Number(m.applications ?? 0),
-    interviews: Number(m.interviews ?? 0),
-    responses: Number(m.responses ?? 0),
-  }));
-}, [props.monthlyActivity]);
+    // Monthly chart
+    const monthly = useMemo(() => {
+        const data = rawMonthly ?? [];
+        return data.map((m) => ({
+            ym:           m.ym ?? m.month,
+            month:        m.month ?? "",
+            applications: Number(m.applications ?? 0),
+            interviews:   Number(m.interviews ?? 0),
+            responses:    Number(m.responses ?? 0),
+        }));
+    }, [rawMonthly]);
 
     const maxMonthly = useMemo(() => {
-  if (!monthly.length) return 0;
-  return Math.max(...monthly.map(m => Math.max(m.applications, m.interviews, m.responses)));
-}, [monthly]);
+        if (!monthly.length) return 1;
+        return Math.max(1, ...monthly.map((m) => Math.max(m.applications, m.interviews, m.responses)));
+    }, [monthly]);
 
+    // Application sources
     const sources = useMemo(() => {
-    const data = props.applicationSources ?? [];
-        if (!Array.isArray(data)) return [];
-
-        return data.map((s) => ({
-         label: s.label ?? "Other",
-         value: Number(s.value ?? 0),
-  }));
-}, [props.applicationSources]);
-    const maxSource = useMemo(() => {
-  if (!sources.length) return 0;
-  return Math.max(...sources.map((s) => s.value));
-}, [sources]);
-
-    const responseBins = useMemo(
-        () => [
-            { label: "0–3 days", value: 4 },
-            { label: "4–7 days", value: 8 },
-            { label: "8–14 days", value: 5 },
-            { label: "15–30 days", value: 3 },
-            { label: "30+ days", value: 2 },
-        ],
-        []
-    );
-    const maxBin = Math.max(...responseBins.map((b) => b.value));
+        const data = rawSources ?? [];
+        return data.map((s) => ({ label: s.label ?? "Other", value: Number(s.value ?? 0) }));
+    }, [rawSources]);
+    const maxSource = useMemo(() => Math.max(1, ...sources.map((s) => s.value)), [sources]);
 
     return (
         <div className="min-h-screen flex bg-[#e2f4f5] font-sans">
             <DashboardSidebar />
             <div className="flex-1 flex flex-col">
-            <TopBar user={auth?.user} />
+                <TopBar user={auth?.user} />
 
-            <div className="flex-1 flex flex-col">
-                {/* Top header */}
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center">
-                    <div className="w-full px-6 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-lg font-semibold text-slate-900">
-                                Analytics
-                            </h1>
-                            <p className="text-sm text-slate-500">
-                                Track your job search progress and performance metrics
-                            </p>
-                        </div>
+                <div className="flex-1 flex flex-col">
+                    <header className="bg-white border-b border-gray-200 px-6 py-6">
+                        <h1 className="text-[32px] font-normal text-slate-900">Analytics</h1>
+                        <p className="text-sm text-slate-500">Track your job search progress and performance metrics</p>
+                    </header>
 
-                        {/* Optional controls */}
-                        <div className="hidden sm:flex items-center gap-3">
-                            <button
-                                type="button"
-                                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                            >
-                                <svg
-                                    className="h-4 w-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                >
-                                    <path d="M3 4h18M6 10h12M10 16h4M11 20h2" />
-                                </svg>
-                                Filters
-                            </button>
-                            <button
-                                type="button"
-                                className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white hover:bg-teal-700"
-                            >
-                                Export
-                            </button>
-                        </div>
-                    </div>
-                </header>
+                    <main className="flex-1 px-6 py-6 space-y-6">
 
-                {/* Content */}
-                <main className="flex-1 px-6 py-6">
-                    <div className="space-y-6">
                         {/* KPI cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch auto-rows-fr">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <StatCard
                                 title="Total Applications"
-                                value={kpis.totalApplications}
-                                subtext={`+${kpis.totalThisWeek} this week`}
-                                icon={
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M4 19V5m0 14h16" />
-                                        <path d="M8 17V9M12 17V7M16 17v-5" />
-                                    </svg>
-                                }
+                                value={kpis.totalApplications ?? 0}
+                                subtext={`+${kpis.totalThisWeek ?? 0} this week`}
                             />
-
                             <StatCard
                                 title="Response Rate"
                                 value={`${responseRate.toFixed(1)}%`}
-                                subtext={`${deltaPrefix}${responseRateDelta.toFixed(
-                                    1
-                                )}% vs last month`}
-                                icon={
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M3 17l6-6 4 4 7-7" />
-                                        <path d="M14 8h6v6" />
-                                    </svg>
-                                }
+                                subtext={`${deltaPrefix}${responseRateDelta.toFixed(1)}% vs last month`}
                             />
-
+                            <StatCard
+                                title="Interviews Secured"
+                                value={kpis.interviewsSecured ?? 0}
+                            />
+                            <StatCard
+                                title="Accepted"
+                                value={kpis.acceptedCount ?? 0}
+                            />
                         </div>
 
-                        {/* Middle charts */}
-                        <div className="grid grid-cols-1 gap-4">
-                            <Card
-                                title="Application Status"
-                                subtitle="Current distribution of your applications"
-                            >
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
+                        {/* Status donut + Response breakdown */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <Card title="Application Status" subtitle="Current distribution of your applications">
+                                <div className="flex items-center gap-8">
                                     {/* Donut */}
-                                    <div className="lg:col-span-2 flex items-center justify-center">
-                                        <div className="relative h-56 w-56">
-                                            <div
-                                                className="absolute inset-0 rounded-full"
-                                                style={donutStyle}
-                                            />
-                                            <div className="absolute inset-6 rounded-full bg-white border border-slate-200" />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="text-center">
-                                                    <div className="text-xs text-slate-500">
-                                                        Total
-                                                    </div>
-                                                    <div className="text-xl font-semibold text-slate-900">
-                                                        {statusTotal}
-                                                    </div>
-                                                </div>
+                                    <div className="relative h-48 w-48 shrink-0">
+                                        <div className="absolute inset-0 rounded-full" style={donutStyle} />
+                                        <div className="absolute inset-6 rounded-full bg-white border border-slate-200" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className="text-xs text-slate-500">Total</div>
+                                                <div className="text-xl font-semibold text-slate-900">{statusTotal}</div>
                                             </div>
                                         </div>
                                     </div>
-
                                     {/* Legend */}
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 flex-1">
                                         {status.map((s) => {
-                                            const pct =
-                                                statusTotal === 0
-                                                    ? 0
-                                                    : (s.value / statusTotal) * 100;
+                                            const pct = statusTotal === 0 ? 0 : (s.value / statusTotal) * 100;
                                             return (
-                                                <div
-                                                    key={s.label}
-                                                    className="flex items-center justify-between text-sm"
-                                                >
+                                                <div key={s.label} className="flex items-center justify-between text-sm">
                                                     <div className="flex items-center gap-2">
-                                                        <span
-                                                            className="h-2.5 w-2.5 rounded-full"
-                                                            style={{ backgroundColor: s.color }}
-                                                        />
-                                                        <span className="text-slate-700">
-                                                            {s.label}
-                                                        </span>
+                                                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                                                        <span className="text-slate-700">{s.label}</span>
                                                     </div>
-                                                    <span className="text-slate-500">
-                                                        {s.value}{" "}
-                                                        <span className="text-slate-400">
-                                                            ({pct.toFixed(0)}%)
-                                                        </span>
-                                                    </span>
+                                                    <span className="text-slate-500">{s.value} <span className="text-slate-400">({pct.toFixed(0)}%)</span></span>
                                                 </div>
                                             );
                                         })}
-
-                                        <div className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
-                                            <div className="flex justify-between">
-                                                <span>Tip</span>
-                                                <span>
-                                                    Add statuses like Interview/Offer later
-                                                </span>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </Card>
 
-                            <Card
-                                title="Applications Over Time"
-                                subtitle="Monthly application activity"
-                                footer={
-                                    <div className="flex items-center gap-4 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 rounded bg-teal-500" />
-                                            <span className="text-slate-600">
-                                                Applications
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 rounded bg-violet-500" />
-                                            <span className="text-slate-600">
-                                                Interviews
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 rounded bg-blue-500" />
-                                            <span className="text-slate-600">
-                                                Responses
-                                            </span>
-                                        </div>
-                                    </div>
-                                }
-                            >
-                                {/* Simple grouped bar chart (no chart library) */}
-                                <div className="h-64 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-  <div className="h-full flex items-end justify-between gap-3">
-    {monthly.map((m) => {
-      const scale = maxMonthly === 0 ? 0 : 180 / maxMonthly;
-
-      return (
-        <div
-          key={m.ym} // ✅ use stable key
-          className="flex-1 flex flex-col items-center gap-2"
-        >
-          <div className="w-full flex items-end justify-center gap-1">
-            <div
-              className="w-3 rounded-md bg-teal-500"
-              style={{ height: m.applications * scale + 12 }}
-              title={`Applications: ${m.applications}`}
-            />
-            <div
-              className="w-3 rounded-md bg-violet-500"
-              style={{ height: m.interviews * scale + 12 }}
-              title={`Interviews: ${m.interviews}`}
-            />
-            <div
-              className="w-3 rounded-md bg-blue-500"
-              style={{ height: m.responses * scale + 12 }}
-              title={`Responses: ${m.responses}`}
-            />
-          </div>
-
-          <div className="text-xs text-slate-500">{m.month}</div>
-        </div>
-      );
-    })}
-  </div>
-</div>
-                            </Card>
-                        </div>
-
-                        {/* Bottom charts */}
-                        <div className="grid grid-cols-1 gap-4">
-                            <Card
-                                title="Application Sources"
-                                subtitle="Where you're finding opportunities"
-                            >
+                            <Card title="Response Breakdown" subtitle="Outcomes from your submitted applications">
                                 <div className="space-y-4">
-                                    {sources.map((s) => (
-                                        <div key={s.label}>
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600">
-                                                    {s.label}
-                                                </span>
-                                                <span className="text-slate-500">
-                                                    {s.value}
-                                                </span>
+                                    {responseTypes.map((r) => (
+                                        <div key={r.label}>
+                                            <div className="flex items-center justify-between text-sm mb-1.5">
+                                                <span className="text-slate-600">{r.label}</span>
+                                                <span className="text-slate-500">{r.value}</span>
                                             </div>
-                                            <div className="mt-2 h-3 rounded-full bg-slate-100 overflow-hidden">
+                                            <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
                                                 <div
-                                                    className="h-full bg-teal-500 rounded-full"
-                                                    style={{
-                                                        width:
-                                                            maxSource === 0
-                                                                ? "0%"
-                                                                : `${(s.value / maxSource) * 100}%`,
-                                                    }}
+                                                    className="h-full rounded-full transition-all"
+                                                    style={{ width: `${(r.value / maxResponseType) * 100}%`, backgroundColor: r.color }}
                                                 />
                                             </div>
                                         </div>
                                     ))}
+                                    {responseTypes.every((r) => r.value === 0) && (
+                                        <p className="text-sm text-slate-400">No responses logged yet.</p>
+                                    )}
                                 </div>
                             </Card>
                         </div>
-                    </div>
-                </main>
+
+                        {/* Monthly activity */}
+                        <Card
+                            title="Applications Over Time"
+                            subtitle="Monthly application activity"
+                            footer={
+                                <div className="flex items-center gap-4 text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-2.5 w-2.5 rounded bg-teal-500" />
+                                        <span className="text-slate-600">Applications</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-2.5 w-2.5 rounded bg-violet-500" />
+                                        <span className="text-slate-600">Interviews</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-2.5 w-2.5 rounded bg-blue-500" />
+                                        <span className="text-slate-600">Responses</span>
+                                    </div>
+                                </div>
+                            }
+                        >
+                            <div className="h-64 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                <div className="h-full flex items-end justify-between gap-3">
+                                    {monthly.map((m) => {
+                                        const scale = 180 / maxMonthly;
+                                        return (
+                                            <div key={m.ym} className="flex-1 flex flex-col items-center gap-2">
+                                                <div className="w-full flex items-end justify-center gap-1">
+                                                    <div className="w-3 rounded-md bg-teal-500"   style={{ height: m.applications * scale + 4 }} title={`Applications: ${m.applications}`} />
+                                                    <div className="w-3 rounded-md bg-violet-500" style={{ height: m.interviews   * scale + 4 }} title={`Interviews: ${m.interviews}`} />
+                                                    <div className="w-3 rounded-md bg-blue-500"   style={{ height: m.responses    * scale + 4 }} title={`Responses: ${m.responses}`} />
+                                                </div>
+                                                <div className="text-xs text-slate-500">{m.month}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Application sources */}
+                        <Card title="Application Sources" subtitle="Where you're finding opportunities">
+                            <div className="space-y-4">
+                                {sources.map((s) => (
+                                    <div key={s.label}>
+                                        <div className="flex items-center justify-between text-sm mb-1.5">
+                                            <span className="text-slate-600">{s.label}</span>
+                                            <span className="text-slate-500">{s.value}</span>
+                                        </div>
+                                        <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                            <div
+                                                className="h-full bg-teal-500 rounded-full"
+                                                style={{ width: `${(s.value / maxSource) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                {sources.length === 0 && <p className="text-sm text-slate-400">No applications logged yet.</p>}
+                            </div>
+                        </Card>
+
+                    </main>
+                </div>
             </div>
-        </div>
         </div>
     );
 }

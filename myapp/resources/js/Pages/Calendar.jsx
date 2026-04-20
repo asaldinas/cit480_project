@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import DashboardSidebar from '@/Components/DashboardSidebar';
+import TopBar from '@/Components/TopBar';
 
 export default function Calendar() {
   const today = new Date();
@@ -244,51 +245,50 @@ export default function Calendar() {
     <>
       <Head title="Calendar" />
 
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-[#e2f4f5] flex">
         <DashboardSidebar />
 
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="text-teal-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8 2v3M16 2v3M3.75 9.25h16.5M5 5.75h14A1.25 1.25 0 0120.25 7v12A1.25 1.25 0 0119 20.25H5A1.25 1.25 0 013.75 19V7A1.25 1.25 0 015 5.75z"
-                      />
-                    </svg>
-                  </span>
-                  <h1 className="text-2xl font-semibold text-gray-900">
-                    Calendar
-                  </h1>
-                </div>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Manage your job search schedule and important dates
-                </p>
+        <div className="flex-1 flex flex-col">
+          <TopBar />
+          <header className="bg-white border-b border-gray-200 px-6 py-6 flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-teal-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8 2v3M16 2v3M3.75 9.25h16.5M5 5.75h14A1.25 1.25 0 0120.25 7v12A1.25 1.25 0 0119 20.25H5A1.25 1.25 0 013.75 19V7A1.25 1.25 0 015 5.75z"
+                    />
+                  </svg>
+                </span>
+                <h1 className="text-[32px] font-normal text-slate-900">
+                  Calendar
+                </h1>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-teal-700"
-              >
-                <span className="text-base leading-none">+</span>
-                Add Event
-              </button>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage your job search schedule and important dates
+              </p>
             </div>
-
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-teal-700"
+            >
+              <span className="text-base leading-none">+</span>
+              Add Event
+            </button>
+          </header>
+          <main className="flex-1 p-6">
+            <div className="max-w-6xl mx-auto space-y-6">
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-sm font-medium text-gray-800">
                   {monthLabel}
@@ -529,6 +529,7 @@ export default function Calendar() {
             </div>
           </div>
         </main>
+        </div>
       </div>
 
       {showAddModal && (
