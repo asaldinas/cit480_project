@@ -1,28 +1,32 @@
-// app/Http/Controllers/SearchController.php
+<?php
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SearchController extends Controller
 {
-    public function search(Request $request)
+    public function search(Request $request): Response
     {
-        // Validate user input
-        $request->validate([
-            'search_term' => 'required|string',
+        $query = $request->input('q', '');
+
+        $results = [];
+
+        if (! empty($query)) {
+            $results = DB::table('applications')
+                ->where('company_name', 'like', "%{$query}%")
+                ->orWhere('job_title', 'like', "%{$query}%")
+                ->orWhere('status', 'like', "%{$query}%")
+                ->limit(20)
+                ->get();
+        }
+
+        return Inertia::render('SearchResults', [
+            'query' => $query,
+            'results' => $results,
         ]);
-
-        // Sanitize the input (optional, but recommended)
-        $searchTerm = $request->input('search_term');
-
-        // Use a parameterized query to prevent SQL injection
-        $results = DB::select("SELECT * FROM your_table WHERE column_name = :searchTerm", ['searchTerm' => $searchTerm]);
-
-        // Handle the search results
-        // ...
-
-        return view('search_results', ['results' => $results]);
     }
 }
