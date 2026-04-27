@@ -19,16 +19,17 @@ export default function Login({ status, canResetPassword }) {
 
   const submit = (e) => {
     e.preventDefault();
-    post(route('login'), { onFinish: () => reset('password') });
+
+    post(route('login'), {
+      onFinish: () => reset('password'),
+    });
   };
 
   return (
     <GuestLayout>
       <Head title="Log in" />
 
-      {/* Fullscreen background + centered card */}
       <div className="relative min-h-screen flex items-center justify-center bg-white font-sans overflow-hidden">
-        {/* Background image */}
         <img
           className="absolute inset-0 w-full h-full object-cover"
           src={bgUrl}
@@ -36,10 +37,8 @@ export default function Login({ status, canResetPassword }) {
           aria-hidden="true"
         />
 
-        {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-white/40" aria-hidden="true" />
 
-        {/* Decorative image in the corner */}
         <img
           className="hidden md:block absolute right-6 top-6 w-40 h-40 object-contain"
           src={decoUrl}
@@ -47,21 +46,16 @@ export default function Login({ status, canResetPassword }) {
           aria-hidden="true"
         />
 
-        {/* Content */}
         <div className="relative z-10 w-full max-w-md px-6">
-          {/* Header */}
           <h1 className="mb-6 text-center text-3xl md:text-4xl font-bold text-green-800">
             Welcome to Career-Track
           </h1>
 
-          {/* Card */}
           <div className="bg-gray-700/80 rounded-3xl px-8 py-10 shadow-xl backdrop-blur">
-            {/* Title */}
             <h2 className="text-2xl font-semibold text-white text-center mb-2">
               Sign in to Career-Track
             </h2>
 
-            {/* New here / register */}
             <p className="text-center text-white mb-6">
               <span>New here? </span>
               <Link
@@ -72,7 +66,6 @@ export default function Login({ status, canResetPassword }) {
               </Link>
             </p>
 
-            {/* Status flash */}
             {status && (
               <div className="mb-4 text-sm text-teal-200 text-center">
                 {status}
@@ -80,7 +73,6 @@ export default function Login({ status, canResetPassword }) {
             )}
 
             <form onSubmit={submit} className="space-y-6">
-              {/* Email */}
               <div>
                 <InputLabel
                   htmlFor="email"
@@ -103,7 +95,6 @@ export default function Login({ status, canResetPassword }) {
                 />
               </div>
 
-              {/* Password */}
               <div>
                 <InputLabel
                   htmlFor="password"
@@ -125,7 +116,6 @@ export default function Login({ status, canResetPassword }) {
                 />
               </div>
 
-              {/* Remember + Forgot */}
               <div className="flex items-center justify-between text-sm text-white">
                 <label className="flex items-center space-x-2">
                   <Checkbox
@@ -146,7 +136,6 @@ export default function Login({ status, canResetPassword }) {
                 )}
               </div>
 
-              {/* Submit */}
               <PrimaryButton
                 disabled={processing}
                 className="w-full h-12 mt-2 bg-teal-700/80 hover:bg-teal-700 rounded-full text-lg text-white flex items-center justify-center"

@@ -9,10 +9,14 @@ class SettingsController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+
         return Inertia::render('Settings', [
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
+            'two_factor_enabled' => ! is_null($user?->two_factor_secret),
+            'two_factor_confirmed' => ! is_null($user?->two_factor_confirmed_at),
         ]);
     }
 
@@ -26,6 +30,7 @@ class SettingsController extends Controller
             'linkedin_url' => ['nullable', 'string', 'max:255'],
             'portfolio_url' => ['nullable', 'string', 'max:255'],
         ]);
+
         $request->user()->update($validated);
 
         return back()->with('success', 'Profile updated.');
