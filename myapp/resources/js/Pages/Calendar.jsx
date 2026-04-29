@@ -1,9 +1,9 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import DashboardSidebar from '@/Components/DashboardSidebar';
 import TopBar from '@/Components/TopBar';
 
-export default function Calendar() {
+export default function Calendar({ events = {} }) {
   const today = new Date();
   const minDate = new Date(2000, 0, 1);
 
@@ -17,19 +17,12 @@ export default function Calendar() {
 
   const [newEventType, setNewEventType] = useState('interview');
   const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventTime, setNewEventTime] = useState('');
 
   const [editingEvent, setEditingEvent] = useState(null);
   const [editEventType, setEditEventType] = useState('interview');
   const [editEventTitle, setEditEventTitle] = useState('');
-
-  const [events, setEvents] = useState({
-    '2025-10-08': [{ id: 1, type: 'interview', label: 'Tech Interview' }],
-    '2025-10-14': [{ id: 2, type: 'deadline', label: 'City Deadline' }],
-    '2025-10-21': [{ id: 3, type: 'followup', label: 'Recruiter Follow-up' }],
-    '2025-10-25': [{ id: 4, type: 'networking', label: 'Networking Event' }],
-  });
-
-  const [nextId, setNextId] = useState(5);
+  const [editEventTime, setEditEventTime] = useState('');
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -90,11 +83,13 @@ export default function Calendar() {
 
   const getEventsForDay = (day) => {
     if (!day) return [];
+
     const key = formatDateKey(
       currentDate.getFullYear(),
       currentDate.getMonth(),
       day
     );
+
     return events[key] || [];
   };
 
@@ -138,36 +133,52 @@ export default function Calendar() {
 
   const selectDay = (day) => {
     if (!day) return;
+
     setSelectedDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
     );
   };
 
-  const addEvent = () => {
-    const title = newEventTitle.trim();
-    if (!title) return;
-
-    const key = getDateKeyFromDate(selectedDate);
-
-    const newItem = {
-      id: nextId,
-      type: newEventType,
-      label: title,
-    };
-
-    setEvents((prev) => ({
-      ...prev,
-      [key]: [...(prev[key] || []), newItem],
-    }));
-
-    setNextId((prev) => prev + 1);
+  const resetAddModal = () => {
     setNewEventTitle('');
     setNewEventType('interview');
+    setNewEventTime('');
     setShowAddModal(false);
-    setCurrentDate(
-      new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
-    );
   };
+
+  const resetEditModal = () => {
+    setShowEditModal(false);
+    setEditingEvent(null);
+    setEditEventTitle('');
+    setEditEventType('interview');
+    setEditEventTime('');
+  };
+
+  const addEvent = () => {
+  const title = newEventTitle.trim();
+  if (!title) return;
+
+  router.post(
+    '/calendar/events',
+    {
+      event_date: getDateKeyFromDate(selectedDate),
+      event_time: newEventTime || null,
+      type: newEventType,
+      label: title,
+    },
+    {
+      preserveScroll: true,
+      preserveState: false,
+      onSuccess: () => {
+        setCurrentDate(
+          new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+        );
+        resetAddModal();
+        router.reload({ only: ['events'] });
+      },
+    }
+  );
+};
 
   const openEditModal = (event, day) => {
     const clickedDate = new Date(
@@ -187,53 +198,46 @@ export default function Calendar() {
     });
     setEditEventType(event.type);
     setEditEventTitle(event.label);
+    setEditEventTime(event.event_time || '');
     setShowEditModal(true);
   };
 
   const saveEditedEvent = () => {
-    if (!editingEvent) return;
-    const title = editEventTitle.trim();
-    if (!title) return;
+  if (!editingEvent) return;
 
-    setEvents((prev) => ({
-      ...prev,
-      [editingEvent.dateKey]: prev[editingEvent.dateKey].map((item) =>
-        item.id === editingEvent.id
-          ? { ...item, type: editEventType, label: title }
-          : item
-      ),
-    }));
+  const title = editEventTitle.trim();
+  if (!title) return;
 
-    setShowEditModal(false);
-    setEditingEvent(null);
-    setEditEventTitle('');
-    setEditEventType('interview');
-  };
+  router.put(
+    `/calendar/events/${editingEvent.id}`,
+    {
+      event_time: editEventTime || null,
+      type: editEventType,
+      label: title,
+    },
+    {
+      preserveScroll: true,
+      preserveState: false,
+      onSuccess: () => {
+        resetEditModal();
+        router.reload({ only: ['events'] });
+      },
+    }
+  );
+};
 
   const deleteEvent = () => {
-    if (!editingEvent) return;
+  if (!editingEvent) return;
 
-    setEvents((prev) => {
-      const updatedDayEvents = prev[editingEvent.dateKey].filter(
-        (item) => item.id !== editingEvent.id
-      );
-
-      const updated = { ...prev };
-
-      if (updatedDayEvents.length === 0) {
-        delete updated[editingEvent.dateKey];
-      } else {
-        updated[editingEvent.dateKey] = updatedDayEvents;
-      }
-
-      return updated;
-    });
-
-    setShowEditModal(false);
-    setEditingEvent(null);
-    setEditEventTitle('');
-    setEditEventType('interview');
-  };
+  router.delete(`/calendar/events/${editingEvent.id}`, {
+    preserveScroll: true,
+    preserveState: false,
+    onSuccess: () => {
+      resetEditModal();
+      router.reload({ only: ['events'] });
+    },
+  });
+};
 
   const selectedDateLabel = selectedDate.toLocaleString('en-US', {
     month: 'long',
@@ -241,16 +245,35 @@ export default function Calendar() {
     year: 'numeric',
   });
 
+  const formatEventTime = (timeString) => {
+  if (!timeString) return '';
+
+  const parts = timeString.split(':');
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return '';
+
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
   return (
     <>
       <Head title="Calendar" />
 
-      <div className="min-h-screen bg-[#e2f4f5] flex">
+      <div className="flex min-h-screen bg-[#e2f4f5]">
         <DashboardSidebar />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col">
           <TopBar />
-          <header className="bg-white border-b border-gray-200 px-6 py-6 flex items-center justify-between">
+
+          <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-6">
             <div>
               <div className="flex items-center gap-3">
                 <span className="text-teal-600">
@@ -269,14 +292,17 @@ export default function Calendar() {
                     />
                   </svg>
                 </span>
+
                 <h1 className="text-[32px] font-normal text-slate-900">
                   Calendar
                 </h1>
               </div>
+
               <p className="mt-1 text-sm text-gray-500">
                 Manage your job search schedule and important dates
               </p>
             </div>
+
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
@@ -286,249 +312,274 @@ export default function Calendar() {
               Add Event
             </button>
           </header>
+
           <main className="flex-1 p-6">
-            <div className="max-w-6xl mx-auto space-y-6">
+            <div className="mx-auto max-w-6xl space-y-6">
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-medium text-gray-800">
-                  {monthLabel}
-                </h2>
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-gray-800">
+                    {monthLabel}
+                  </h2>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={goToPreviousMonth}
-                    disabled={
-                      currentDate.getFullYear() === 2000 &&
-                      currentDate.getMonth() === 0
-                    }
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                    aria-label="Previous month"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={goToNextMonth}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
-                    aria-label="Next month"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <p className="mb-5 text-xs text-gray-500">
-                Selected date:{' '}
-                <span className="font-medium text-gray-700">
-                  {selectedDateLabel}
-                </span>
-              </p>
-
-              <div className="mb-3 grid grid-cols-7 gap-2">
-                {daysOfWeek.map((day) => (
-                  <div
-                    key={day}
-                    className="py-2 text-center text-xs font-medium text-gray-500"
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-7 gap-2">
-                {calendarDays.map((day, index) => {
-                  const dayEvents = getEventsForDay(day);
-
-                  return (
+                  <div className="flex items-center gap-2">
                     <button
-                      key={index}
                       type="button"
-                      onClick={() => selectDay(day)}
-                      className={`min-h-[96px] rounded-xl border bg-white p-2 text-left transition ${
-                        day ? 'hover:border-gray-300' : 'cursor-default'
-                      } ${
-                        isSelectedDay(day)
-                          ? 'border-teal-400 ring-2 ring-teal-100'
-                          : 'border-gray-200'
-                      }`}
+                      onClick={goToPreviousMonth}
+                      disabled={
+                        currentDate.getFullYear() === 2000 &&
+                        currentDate.getMonth() === 0
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="Previous month"
                     >
-                      {day && (
-                        <>
-                          <div
-                            className={`inline-flex h-6 min-w-[24px] items-center justify-center rounded-md px-1 text-xs font-medium ${
-                              isToday(day)
-                                ? 'bg-teal-50 text-teal-600'
-                                : 'text-gray-600'
-                            }`}
-                          >
-                            {day}
-                          </div>
-
-                          <div className="mt-2 space-y-1">
-                            {dayEvents.slice(0, 3).map((event) => (
-                              <div
-                                key={event.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEditModal(event, day);
-                                }}
-                                className={`truncate rounded-md px-2 py-1 text-[10px] font-medium cursor-pointer ${eventStyles[event.type]}`}
-                                title="Click to edit or delete"
-                              >
-                                {event.label}
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
                     </button>
-                  );
-                })}
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Quick Actions
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Add new events quickly
+                    <button
+                      type="button"
+                      onClick={goToNextMonth}
+                      className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
+                      aria-label="Next month"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <p className="mb-5 text-xs text-gray-500">
+                  Selected date:{' '}
+                  <span className="font-medium text-gray-700">
+                    {selectedDateLabel}
+                  </span>
                 </p>
 
-                <div className="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                  Click a date in the calendar, then add a titled event.
+                <div className="mb-3 grid grid-cols-7 gap-2">
+                  {daysOfWeek.map((day) => (
+                    <div
+                      key={day}
+                      className="py-2 text-center text-xs font-medium text-gray-500"
+                    >
+                      {day}
+                    </div>
+                  ))}
                 </div>
 
-                <div className="mt-5 space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewEventType('interview');
-                      setNewEventTitle('');
-                      setShowAddModal(true);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
-                  >
-                    <span className="text-base leading-none">+</span>
-                    Add Interview
-                  </button>
+                <div className="grid grid-cols-7 gap-2">
+                  {calendarDays.map((day, index) => {
+                    const dayEvents = getEventsForDay(day);
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewEventType('deadline');
-                      setNewEventTitle('');
-                      setShowAddModal(true);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
-                  >
-                    <span className="text-base leading-none">+</span>
-                    Add Deadline
-                  </button>
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        disabled={!day}
+                        onClick={() => selectDay(day)}
+                        className={`min-h-[96px] rounded-xl border bg-white p-2 text-left transition ${
+                          day
+                            ? 'hover:border-gray-300'
+                            : 'cursor-default border-gray-100 bg-gray-50'
+                        } ${
+                          isSelectedDay(day)
+                            ? 'border-teal-400 ring-2 ring-teal-100'
+                            : 'border-gray-200'
+                        }`}
+                      >
+                        {day && (
+                          <>
+                            <div
+                              className={`inline-flex min-w-[24px] items-center justify-center rounded-md px-1 text-xs font-medium ${
+                                isToday(day)
+                                  ? 'h-6 bg-teal-50 text-teal-600'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {day}
+                            </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewEventType('followup');
-                      setNewEventTitle('');
-                      setShowAddModal(true);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
-                  >
-                    <span className="text-base leading-none">+</span>
-                    Add Follow-up
-                  </button>
+                            <div className="mt-2 space-y-1">
+                              {dayEvents.slice(0, 3).map((event) => (
+                                <div
+                                  key={event.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(event, day);
+                                  }}
+                                  className={`cursor-pointer truncate rounded-md px-2 py-1 text-[10px] font-medium ${eventStyles[event.type]}`}
+                                  title="Click to edit or delete"
+                                >
+                                  {event.event_time
+                                    ? `${formatEventTime(event.event_time)} - ${event.label}`
+                                    : event.label}
+                                </div>
+                              ))}
+
+                              {dayEvents.length > 3 && (
+                                <div className="px-1 text-[10px] text-gray-500">
+                                  +{dayEvents.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Event Types
-                </h3>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Quick Actions
+                  </h3>
 
-                <div className="mt-5 space-y-4 text-sm text-gray-700">
-                  <div className="flex items-center gap-3">
-                    <span className="h-3.5 w-3.5 rounded-sm bg-teal-500"></span>
-                    <span>Interview</span>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Add new events quickly
+                  </p>
+
+                  <div className="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                    Click a date in the calendar, then add a titled event.
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="h-3.5 w-3.5 rounded-sm bg-red-500"></span>
-                    <span>Deadline</span>
-                  </div>
+                  <div className="mt-5 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewEventType('interview');
+                        setNewEventTitle('');
+                        setNewEventTime('');
+                        setShowAddModal(true);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="text-base leading-none">+</span>
+                      Add Interview
+                    </button>
 
-                  <div className="flex items-center gap-3">
-                    <span className="h-3.5 w-3.5 rounded-sm bg-blue-500"></span>
-                    <span>Follow-up</span>
-                  </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewEventType('deadline');
+                        setNewEventTitle('');
+                        setNewEventTime('');
+                        setShowAddModal(true);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="text-base leading-none">+</span>
+                      Add Deadline
+                    </button>
 
-                  <div className="flex items-center gap-3">
-                    <span className="h-3.5 w-3.5 rounded-sm bg-purple-500"></span>
-                    <span>Networking</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewEventType('followup');
+                        setNewEventTitle('');
+                        setNewEventTime('');
+                        setShowAddModal(true);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="text-base leading-none">+</span>
+                      Add Follow-up
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Link Calendars
-                </h3>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Event Types
+                  </h3>
 
-                <div className="mt-5 space-y-3">
-                  <button className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
-                      G
-                    </span>
-                    Google Calendar
-                  </button>
+                  <div className="mt-5 space-y-4 text-sm text-gray-700">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3.5 w-3.5 rounded-sm bg-teal-500"></span>
+                      <span>Interview</span>
+                    </div>
 
-                  <button className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
-                      O
-                    </span>
-                    Outlook Calendar
-                  </button>
+                    <div className="flex items-center gap-3">
+                      <span className="h-3.5 w-3.5 rounded-sm bg-red-500"></span>
+                      <span>Deadline</span>
+                    </div>
 
-                  <button className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
-                      A
-                    </span>
-                    Apple Calendar
-                  </button>
+                    <div className="flex items-center gap-3">
+                      <span className="h-3.5 w-3.5 rounded-sm bg-blue-500"></span>
+                      <span>Follow-up</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="h-3.5 w-3.5 rounded-sm bg-purple-500"></span>
+                      <span>Networking</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Link Calendars
+                  </h3>
+
+                  <div className="mt-5 space-y-3">
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
+                        G
+                      </span>
+                      Google Calendar
+                    </button>
+
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
+                        O
+                      </span>
+                      Outlook Calendar
+                    </button>
+
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-lg border border-teal-200 px-4 py-2.5 text-left text-sm font-medium text-teal-600 transition hover:bg-teal-50"
+                    >
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-teal-300 text-xs font-bold">
+                        A
+                      </span>
+                      Apple Calendar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </main>
         </div>
       </div>
 
@@ -548,6 +599,7 @@ export default function Calendar() {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Event Type
               </label>
+
               <select
                 value={newEventType}
                 onChange={(e) => setNewEventType(e.target.value)}
@@ -564,6 +616,7 @@ export default function Calendar() {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Title
               </label>
+
               <input
                 type="text"
                 value={newEventTitle}
@@ -571,6 +624,23 @@ export default function Calendar() {
                 placeholder="Ex: Tech Interview"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Time
+              </label>
+
+              <input
+                type="time"
+                value={newEventTime}
+                onChange={(e) => setNewEventTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+
+              <p className="mt-1 text-xs text-gray-500">
+                Leave blank for an all-day event.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -584,10 +654,7 @@ export default function Calendar() {
 
               <button
                 type="button"
-                onClick={() => {
-                  setShowAddModal(false);
-                  setNewEventTitle('');
-                }}
+                onClick={resetAddModal}
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
               >
                 Cancel
@@ -613,6 +680,7 @@ export default function Calendar() {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Event Type
               </label>
+
               <select
                 value={editEventType}
                 onChange={(e) => setEditEventType(e.target.value)}
@@ -629,12 +697,30 @@ export default function Calendar() {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Title
               </label>
+
               <input
                 type="text"
                 value={editEventTitle}
                 onChange={(e) => setEditEventTitle(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Time
+              </label>
+
+              <input
+                type="time"
+                value={editEventTime}
+                onChange={(e) => setEditEventTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+
+              <p className="mt-1 text-xs text-gray-500">
+                Clear the time to make it all-day.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -657,7 +743,7 @@ export default function Calendar() {
 
             <button
               type="button"
-              onClick={() => setShowEditModal(false)}
+              onClick={resetEditModal}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
               Cancel

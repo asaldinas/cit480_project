@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -51,6 +52,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
+    Route::get('/calendar', [CalendarEventController::class, 'index'])->name('calendar.index');
+    Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar.events.store');
+    Route::put('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'update'])->name('calendar.events.update');
+    Route::delete('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('calendar.events.destroy');
+
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
 
@@ -59,7 +65,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/sign-out', fn () => Inertia::render('SignOut'))->name('signout');
-    Route::get('/calendar', fn () => Inertia::render('Calendar'))->name('calendar');
     Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
 });
 
